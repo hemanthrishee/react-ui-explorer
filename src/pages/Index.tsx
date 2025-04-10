@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { toast } from "sonner";
 
@@ -82,7 +82,12 @@ const Index = () => {
                 className="ml-2 bg-react-primary text-react-secondary hover:bg-react-primary/90 py-6 px-8"
                 disabled={isLoading}
               >
-                {isLoading ? 'Loading...' : 'Learn'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Loading...
+                  </>
+                ) : 'Learn'}
               </Button>
             </form>
             
@@ -94,7 +99,9 @@ const Index = () => {
                   className="py-6 border-gray-200 hover:border-react-primary hover:bg-gray-50"
                   onClick={() => {
                     setSearchQuery(topic);
-                    navigate(`/topic/${encodeURIComponent(topic.toLowerCase())}`);
+                    document.querySelector('form')?.dispatchEvent(
+                      new Event('submit', { cancelable: true, bubbles: true })
+                    );
                   }}
                   disabled={isLoading}
                 >
