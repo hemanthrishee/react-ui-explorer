@@ -5,15 +5,50 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { toast } from "sonner";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
+    
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a search query");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Make POST request to the specified endpoint
+      const response = await fetch('http://localhost:8000/gemini-search/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          search_query: searchQuery,
+          csrfmiddlewaretoken: '{{ csrf_token }}' // Note: This will need to be replaced with actual CSRF token
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Store the response data and navigate to the topic page
+      localStorage.setItem('topicData', JSON.stringify(data));
       navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+    } catch (error) {
+      console.error('Error during search:', error);
+      toast.error("An error occurred while processing your request. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -39,13 +74,15 @@ const Index = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 py-6 text-lg w-full"
+                  disabled={isLoading}
                 />
               </div>
               <Button 
                 type="submit" 
                 className="ml-2 bg-react-primary text-react-secondary hover:bg-react-primary/90 py-6 px-8"
+                disabled={isLoading}
               >
-                Learn
+                {isLoading ? 'Loading...' : 'Learn'}
               </Button>
             </form>
             
@@ -59,6 +96,7 @@ const Index = () => {
                     setSearchQuery(topic);
                     navigate(`/topic/${encodeURIComponent(topic.toLowerCase())}`);
                   }}
+                  disabled={isLoading}
                 >
                   {topic}
                 </Button>

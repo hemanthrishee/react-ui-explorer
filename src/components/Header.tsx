@@ -3,16 +3,51 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Code, Search } from 'lucide-react';
+import { Code, Search, Loader2 } from 'lucide-react';
+import { toast } from "sonner";
 
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
+    
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a search query");
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Make POST request to the specified endpoint
+      const response = await fetch('http://localhost:8000/gemini-search/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          search_query: searchQuery,
+          csrfmiddlewaretoken: '{{ csrf_token }}' // Note: This will need to be replaced with actual CSRF token
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Store the response data and navigate to the topic page
+      localStorage.setItem('topicData', JSON.stringify(data));
       navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+    } catch (error) {
+      console.error('Error during search:', error);
+      toast.error("An error occurred while processing your request. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,10 +68,15 @@ const Header: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 bg-react-secondary/80 border-gray-600 text-white placeholder:text-gray-400"
+              disabled={isLoading}
             />
           </div>
-          <Button type="submit" className="ml-2 bg-react-primary text-react-secondary hover:bg-react-primary/90">
-            Search
+          <Button 
+            type="submit" 
+            className="ml-2 bg-react-primary text-react-secondary hover:bg-react-primary/90"
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}
           </Button>
         </form>
         

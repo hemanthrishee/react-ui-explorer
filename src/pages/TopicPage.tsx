@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -71,20 +70,23 @@ const TopicPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // This would be where you fetch the data from your backend
-    // For now, we'll simulate a fetch with a timeout
+    const storedData = localStorage.getItem('topicData');
+    
+    if (storedData) {
+      try {
+        setTopicData(JSON.parse(storedData));
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.error("Error parsing stored data:", err);
+      }
+    }
+    
     setLoading(true);
     
     const fetchTopicData = async () => {
       try {
-        // In a real implementation, you would fetch data from your API
-        // const response = await fetch(`/api/topics/${topicName}`);
-        // const data = await response.json();
-        
-        // For demo purposes, we'll simulate a successful API response with your React data
-        // In a real app, replace this with actual API call
         setTimeout(() => {
-          // Simulating data for React
           if (topicName?.toLowerCase() === 'react') {
             const mockData: TopicData = {
               react: {
@@ -171,11 +173,10 @@ const TopicPage = () => {
             setTopicData(mockData);
             setLoading(false);
           } else {
-            // For any other topic, simulate a "topic not found" scenario
             setError(`No data available for "${topicName}". Try searching for "React" for a demo.`);
             setLoading(false);
           }
-        }, 1500); // Simulate network delay
+        }, 1500);
       } catch (err) {
         console.error("Error fetching topic data:", err);
         setError("Failed to load topic data. Please try again later.");
@@ -245,7 +246,6 @@ const TopicPage = () => {
     );
   }
 
-  // Extract the topic key and data
   const topic = Object.keys(topicData)[0];
   const data = topicData[topic];
 
