@@ -30,8 +30,12 @@ interface SubTopic {
   commonMistakes: string[];
 }
 
-const SubtopicsSection: React.FC = () => {
-  const { subTopics } = reactData.react;
+interface SubTopicsSectionProps {
+  subTopics: Array<SubTopic>;
+  topicName: string;
+}
+
+const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicName }) => {
   const [selectedTopic, setSelectedTopic] = useState<SubTopic | null>(null);
   
   const getDifficultyColor = (difficulty: string) => {
@@ -51,14 +55,14 @@ const SubtopicsSection: React.FC = () => {
     <section id="subtopics" className="py-16">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-4">
-          React <span className="text-react-primary">Topics</span> to Master
+          {topicName} <span className="text-react-primary">Topics</span> to Master
         </h2>
         <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          Explore these key React concepts to build a strong foundation and advance your skills
+          Explore these key {topicName} concepts to build a strong foundation and advance your skills
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {subTopics.description.subtopics.map((topic, index) => (
+          {subTopics.map((topic, index) => (
             <Card key={index} className="card-hover">
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">

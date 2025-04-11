@@ -20,35 +20,7 @@ const Header: React.FC = () => {
     }
     
     setIsLoading(true);
-    
-    try {
-      // Make POST request to the specified endpoint
-      const response = await fetch('http://localhost:8000/gemini-search/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          search_query: searchQuery,
-          csrfmiddlewaretoken: '{{ csrf_token }}' // Note: This will need to be replaced with actual CSRF token
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Store the response data and navigate to the topic page
-      localStorage.setItem('topicData', JSON.stringify(data));
-      navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
-    } catch (error) {
-      console.error('Error during search:', error);
-      toast.error("An error occurred while processing your request. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
   };
 
   return (
@@ -56,7 +28,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto flex items-center justify-between px-4">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
           <Code size={24} className="text-react-primary" />
-          <span className="text-xl font-bold">TechExplorer</span>
+          <span className="text-xl font-bold">LearnFlow</span>
         </div>
         
         <form onSubmit={handleSearch} className="hidden md:flex flex-1 mx-12 max-w-md">
@@ -74,6 +46,7 @@ const Header: React.FC = () => {
           <Button 
             type="submit" 
             className="ml-2 bg-react-primary text-react-secondary hover:bg-react-primary/90"
+            onClick={handleSearch}
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}

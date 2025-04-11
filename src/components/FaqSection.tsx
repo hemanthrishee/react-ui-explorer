@@ -10,9 +10,15 @@ import {
 import { HelpCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-const FaqSection: React.FC = () => {
-  const { frequentlyAskedQuestions } = reactData.react;
-  
+interface FaqSectionProps {
+  topicName: string,
+  frequentlyAskedQuestions: Array<{
+    question: string;
+    answer: string;
+  }>
+}
+
+const FaqSection: React.FC<FaqSectionProps> = ({ topicName, frequentlyAskedQuestions }) => {
   return (
     <section id="faq" className="py-16">
       <div className="container mx-auto px-4">
@@ -20,12 +26,12 @@ const FaqSection: React.FC = () => {
           Frequently Asked <span className="text-react-primary">Questions</span>
         </h2>
         <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          Common questions about React and their answers
+          Common questions about {topicName} and their answers
         </p>
         
         <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="w-full">
-            {frequentlyAskedQuestions.description.map((faq, index) => (
+            {frequentlyAskedQuestions.map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-200">
                 <AccordionTrigger className="text-left font-medium py-4 flex gap-2">
                   <div className="flex gap-2 items-center">

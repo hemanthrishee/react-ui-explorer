@@ -24,25 +24,6 @@ const Index = () => {
     
     try {
       // Make POST request to the specified endpoint
-      const response = await fetch('http://localhost:8000/gemini-search/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          search_query: searchQuery,
-          csrfmiddlewaretoken: '{{ csrf_token }}' // Note: This will need to be replaced with actual CSRF token
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Store the response data and navigate to the topic page
-      localStorage.setItem('topicData', JSON.stringify(data));
       navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
     } catch (error) {
       console.error('Error during search:', error);

@@ -4,19 +4,22 @@ import { reactData } from '@/data/reactData';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 
-const HeroSection: React.FC = () => {
-  const { shortDescription } = reactData.react;
-  
+interface HeroSectionProps {
+  shortDescription: string;
+  topicName: string;
+}
+
+const HeroSection: React.FC<HeroSectionProps> = ({ shortDescription, topicName }) => {
   return (
     <section id="introduction" className="py-16 bg-gradient-to-b from-react-secondary to-react-secondary/90 text-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-8">
           <div className="md:w-1/2">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Learn <span className="text-react-primary">React</span>
+              Learn <span className="text-react-primary">{topicName}</span>
             </h1>
             <div className="prose prose-invert max-w-none">
-              <ReactMarkdown>{shortDescription.description}</ReactMarkdown>
+              <ReactMarkdown>{shortDescription}</ReactMarkdown>
             </div>
             <div className="mt-8 flex flex-wrap gap-4">
               <Button className="bg-react-primary text-react-secondary hover:bg-react-primary/90">

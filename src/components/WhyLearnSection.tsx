@@ -5,18 +5,27 @@ import ReactMarkdown from 'react-markdown';
 import { Card, CardContent } from '@/components/ui/card';
 import { Award, DollarSign, Workflow } from 'lucide-react';
 
-const WhyLearnSection: React.FC = () => {
-  const { needToLearnReact } = reactData.react;
-  
+interface WhyLearnSectionProps {
+  needToLearn: string;
+  topicName: string;
+  benefit1Heading: string;
+  benefit1Description: string;
+  benefit2Heading: string;
+  benefit2Description: string;
+  benefit3Heading: string;
+  benefit3Description: string;
+}
+
+const WhyLearnSection: React.FC<WhyLearnSectionProps> = ({needToLearn, topicName, benefit1Heading, benefit1Description, benefit2Heading, benefit2Description, benefit3Heading, benefit3Description}) => {
   return (
     <section className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12">
-          Why Learn <span className="text-react-primary">React?</span>
+          Why Learn <span className="text-react-primary">{topicName}?</span>
         </h2>
         
         <div className="prose max-w-3xl mx-auto mb-12 text-center">
-          <ReactMarkdown>{needToLearnReact.description}</ReactMarkdown>
+          <ReactMarkdown>{needToLearn}</ReactMarkdown>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -27,9 +36,9 @@ const WhyLearnSection: React.FC = () => {
                   <Workflow className="w-8 h-8 text-react-primary" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold text-center mb-2">Component-Based</h3>
+              <h3 className="text-xl font-semibold text-center mb-2">{benefit1Heading}</h3>
               <p className="text-gray-600 text-center">
-                Build encapsulated components that manage their own state, then compose them to make complex UIs.
+                {benefit1Description}
               </p>
             </CardContent>
           </Card>
@@ -41,9 +50,9 @@ const WhyLearnSection: React.FC = () => {
                   <Award className="w-8 h-8 text-react-primary" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold text-center mb-2">Industry Standard</h3>
+              <h3 className="text-xl font-semibold text-center mb-2">{benefit2Heading}</h3>
               <p className="text-gray-600 text-center">
-                Used by thousands of companies including Facebook, Instagram, Netflix, and Airbnb.
+                {benefit2Description}
               </p>
             </CardContent>
           </Card>
@@ -55,9 +64,9 @@ const WhyLearnSection: React.FC = () => {
                   <DollarSign className="w-8 h-8 text-react-primary" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold text-center mb-2">High Demand</h3>
+              <h3 className="text-xl font-semibold text-center mb-2">{benefit3Heading}</h3>
               <p className="text-gray-600 text-center">
-                React developers are among the highest-paid front-end specialists in the job market.
+                {benefit3Description}
               </p>
             </CardContent>
           </Card>

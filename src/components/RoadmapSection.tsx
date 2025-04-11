@@ -17,9 +17,20 @@ import {
 import { ChevronRight, Code, CheckCircle2, LightbulbIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-const RoadmapSection: React.FC = () => {
-  const { roadMapToLearnReact } = reactData.react;
+interface RoadmapSectionProps {
+  topicName: string,
+  prerequisites: Array<string>,
+  levels: Array<{
+    name: string,
+    topics: Array<string>,
+    howToConquer: string,
+    insiderTips: string
+  }>
+}
+
+const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisites, levels }) => {
   const [expandedLevel, setExpandedLevel] = useState<string | null>("Basic Level");
+  console.log(prerequisites)
   
   const handleLevelClick = (levelName: string) => {
     setExpandedLevel(expandedLevel === levelName ? null : levelName);
@@ -30,6 +41,7 @@ const RoadmapSection: React.FC = () => {
       case "Basic Level": return "text-green-500";
       case "Intermediate Level": return "text-yellow-500";
       case "Advanced Level": return "text-red-500";
+      case "Expert Level": return "text-blue-500";
       default: return "text-gray-500";
     }
   };
@@ -38,10 +50,10 @@ const RoadmapSection: React.FC = () => {
     <section id="roadmap" className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-4">
-          React Learning <span className="text-react-primary">Roadmap</span>
+          {topicName} Learning <span className="text-react-primary">Roadmap</span>
         </h2>
         <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          Follow this structured path to master React, from fundamental concepts to advanced techniques
+          Follow this structured path to master {topicName}, from fundamental concepts to advanced techniques
         </p>
         
         <div className="mb-12">
@@ -49,12 +61,12 @@ const RoadmapSection: React.FC = () => {
             <CardHeader>
               <CardTitle>Prerequisites</CardTitle>
               <CardDescription>
-                Before diving into React, ensure you have these foundational skills
+                Before diving into {topicName}, ensure you have these foundational skills
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {roadMapToLearnReact.description.prerequisites.map((prereq, index) => (
+                {prerequisites.map((prereq, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                     <span><ReactMarkdown>{prereq}</ReactMarkdown></span>
@@ -66,7 +78,7 @@ const RoadmapSection: React.FC = () => {
         </div>
         
         <div className="space-y-6">
-          {roadMapToLearnReact.description.levels.map((level, index) => (
+          {levels.map((level, index) => (
             <Card 
               key={index} 
               className={`transition-all duration-300 ${expandedLevel === level.name ? 'border-react-primary shadow-md' : 'card-hover'}`}

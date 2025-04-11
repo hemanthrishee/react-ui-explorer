@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
             <Code size={24} className="text-react-primary" />
-            <span className="text-xl font-bold">ReactExplorer</span>
+            <span className="text-xl font-bold">LearnFlow</span>
           </div>
           
           <div className="flex space-x-6">
@@ -66,7 +66,7 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
-            <p>© 2025 ReactExplorer. All rights reserved.</p>
+            <p>© 2025 LearnFlow. All rights reserved.</p>
           </div>
         </div>
       </div>

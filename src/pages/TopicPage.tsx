@@ -65,7 +65,7 @@ interface TopicData {
 }
 
 const TopicPage = () => {
-  const { topicName } = useParams<{ topicName: string }>();
+  const [topicName, setTopicName] = useState(useParams().topicName || '');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [topicData, setTopicData] = useState<TopicData | null>(null);
@@ -74,31 +74,8 @@ const TopicPage = () => {
 
   useEffect(() => {
     // Get data from localStorage first (which would be set from the search)
-    const storedData = localStorage.getItem('topicData');
-    
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        setTopicData(parsedData);
-        setLoading(false);
-        
-        // If the data is empty or doesn't have the expected structure
-        if (!parsedData || Object.keys(parsedData).length === 0) {
-          // In this case, we'll try to fetch directly instead of showing an error
-          fetchTopicData();
-        }
-        return;
-      } catch (err) {
-        console.error("Error parsing stored data:", err);
-        // If there's an error parsing, we'll try to fetch directly
-        fetchTopicData();
-        return;
-      }
-    }
-    
     // If no data in localStorage, fetch it directly
-    fetchTopicData();
-    
+    fetchTopicData()
     async function fetchTopicData() {
       setLoading(true);
       
@@ -114,10 +91,11 @@ const TopicPage = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
           },
           body: JSON.stringify({
             search_query: topicName,
-            csrfmiddlewaretoken: '{{ csrf_token }}' // This will need to be replaced with a proper CSRF token
+            // csrfmiddlewaretoken: '{{ csrf_token }}' // Note: This will need to be replaced with actual CSRF token
           }),
         });
         
@@ -127,9 +105,10 @@ const TopicPage = () => {
         
         const data = await response.json();
         
-        // Store the data in localStorage and state
-        localStorage.setItem('topicData', JSON.stringify(data));
-        setTopicData(data);
+        // Store the response data and navigate to the topic page
+        const resultData = await JSON.parse(data.result);
+        setTopicData(resultData[resultData["topic"]]);
+        setTopicName(resultData["topic"])
         setLoading(false);
       } catch (err) {
         console.error("Error fetching topic data:", err);
@@ -213,15 +192,24 @@ const TopicPage = () => {
             Back to Search
           </Button>
         </div>
-        <HeroSection />
-        <WhyLearnSection />
-        <RoadmapSection />
-        <SubtopicsSection />
-        <KeyTakeawaysSection />
-        <FaqSection />
-        <RelatedTopicsSection />
-      </main>
-      <Footer />
+        <HeroSection shortDescription={topicData["Short Description"]["Description"].toString()} topicName={topicName} />
+        <WhyLearnSection 
+            needToLearn={topicData[`Need to Learn ${topicName}`]["Description"].toString()} 
+            topicName={topicName} 
+            benefit1Heading={topicData[`Need to Learn ${topicName}`]["Benefit 1"]["heading"].toString()} 
+            benefit1Description={topicData[`Need to Learn ${topicName}`]["Benefit 1"]["description"].toString()}
+            benefit2Heading={topicData[`Need to Learn ${topicName}`]["Benefit 2"]["heading"].toString()}
+            benefit2Description={topicData[`Need to Learn ${topicName}`]["Benefit 2"]["description"].toString()}
+            benefit3Heading={topicData[`Need to Learn ${topicName}`]["Benefit 3"]["heading"].toString()}
+            benefit3Description={topicData[`Need to Learn ${topicName}`]["Benefit 3"]["description"].toString()}
+            />
+        <RoadmapSection topicName={topicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]["Description"]['prerequisites']} levels={topicData[`Road Map to Learn ${topicName}`]["Description"]['levels']} />
+        <SubtopicsSection subTopics={topicData["SubTopics"]["Description"]["subtopics"]} topicName={topicName} />
+        <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]["Description"]} topicName={topicName} />
+        <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]["Description"]} />
+        <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]["Description"]} />
+            </main>
+        <Footer />
     </div>
   );
 };
