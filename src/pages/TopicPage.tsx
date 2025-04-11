@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -10,7 +11,7 @@ import FaqSection from '@/components/FaqSection';
 import RelatedTopicsSection from '@/components/RelatedTopicsSection';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check } from 'lucide-react';
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 
