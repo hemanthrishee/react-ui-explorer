@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -11,10 +10,10 @@ import FaqSection from '@/components/FaqSection';
 import RelatedTopicsSection from '@/components/RelatedTopicsSection';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon } from 'lucide-react';
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
-// Type for the JSON data structure
 interface TopicData {
   [topic: string]: {
     shortDescription: {
@@ -73,8 +72,6 @@ const TopicPage = () => {
   const formattedTopicName = topicName ? topicName.charAt(0).toUpperCase() + topicName.slice(1) : '';
 
   useEffect(() => {
-    // Get data from localStorage first (which would be set from the search)
-    // If no data in localStorage, fetch it directly
     fetchTopicData()
     async function fetchTopicData() {
       setLoading(true);
@@ -86,7 +83,6 @@ const TopicPage = () => {
       }
       
       try {
-        // Call the API to get data for the specified topic
         const response = await fetch('http://localhost:8000/gemini-search/search', {
           method: 'POST',
           headers: {
@@ -95,7 +91,6 @@ const TopicPage = () => {
           },
           body: JSON.stringify({
             search_query: topicName,
-            // csrfmiddlewaretoken: '{{ csrf_token }}' // Note: This will need to be replaced with actual CSRF token
           }),
         });
         
@@ -105,7 +100,6 @@ const TopicPage = () => {
         
         const data = await response.json();
         
-        // Store the response data and navigate to the topic page
         const resultData = await JSON.parse(data.result);
         setTopicData(resultData[resultData["topic"]]);
         setTopicName(resultData["topic"])
@@ -120,6 +114,13 @@ const TopicPage = () => {
 
   const goBack = () => {
     navigate('/');
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   if (loading) {
@@ -183,14 +184,80 @@ const TopicPage = () => {
       <Header />
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-4">
-          <Button 
-            variant="outline" 
-            onClick={goBack} 
-            className="mb-4 flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Search
-          </Button>
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <Button 
+              variant="outline" 
+              onClick={goBack} 
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Search
+            </Button>
+            
+            <div className="flex gap-1 overflow-x-auto pb-2 md:pb-0 md:ml-4">
+              <Separator orientation="vertical" className="hidden md:block h-8" />
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="whitespace-nowrap flex items-center gap-1.5"
+                onClick={() => scrollToSection('introduction')}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                Introduction
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="whitespace-nowrap flex items-center gap-1.5"
+                onClick={() => scrollToSection('why-learn')}
+              >
+                <ListChecks className="h-3.5 w-3.5" />
+                Why Learn
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="whitespace-nowrap flex items-center gap-1.5"
+                onClick={() => scrollToSection('roadmap')}
+              >
+                <Map className="h-3.5 w-3.5" />
+                Roadmap
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="whitespace-nowrap flex items-center gap-1.5"
+                onClick={() => scrollToSection('subtopics')}
+              >
+                <LinkIcon className="h-3.5 w-3.5" />
+                Topics
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="whitespace-nowrap flex items-center gap-1.5"
+                onClick={() => scrollToSection('key-takeaways')}
+              >
+                <Check className="h-3.5 w-3.5" />
+                Takeaways
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="whitespace-nowrap flex items-center gap-1.5"
+                onClick={() => scrollToSection('faq')}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                FAQ
+              </Button>
+            </div>
+          </div>
         </div>
         <HeroSection shortDescription={topicData["Short Description"]["Description"].toString()} topicName={topicName} />
         <WhyLearnSection 
@@ -208,8 +275,8 @@ const TopicPage = () => {
         <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]["Description"]} topicName={topicName} />
         <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]["Description"]} />
         <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]["Description"]} />
-            </main>
-        <Footer />
+      </main>
+      <Footer />
     </div>
   );
 };

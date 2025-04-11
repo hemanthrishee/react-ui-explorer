@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { reactData } from '@/data/reactData';
 import { Card, CardContent } from '@/components/ui/card';
 import { Check } from 'lucide-react';
 
@@ -11,7 +10,7 @@ interface KeyTakeawaysSectionProps {
 
 const KeyTakeawaysSection: React.FC<KeyTakeawaysSectionProps> = ({ topicName, keyTakeaways }) => {
   return (
-    <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+    <section id="key-takeaways" className="py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-4">
           Key <span className="text-react-primary">Takeaways</span>
