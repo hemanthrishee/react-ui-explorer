@@ -184,23 +184,23 @@ const TopicPage = () => {
       <Header />
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <Button 
-              variant="outline" 
-              onClick={goBack} 
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Search
-            </Button>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={goBack} 
+                className="flex items-center gap-2 self-start"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Search
+              </Button>
+            </div>
             
-            <div className="flex gap-1 overflow-x-auto pb-2 md:pb-0 md:ml-4">
-              <Separator orientation="vertical" className="hidden md:block h-8" />
-              
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 w-full">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="whitespace-nowrap flex items-center gap-1.5"
+                className="w-full flex items-center gap-1.5"
                 onClick={() => scrollToSection('introduction')}
               >
                 <BookOpen className="h-3.5 w-3.5" />
@@ -210,7 +210,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="whitespace-nowrap flex items-center gap-1.5"
+                className="w-full flex items-center gap-1.5"
                 onClick={() => scrollToSection('why-learn')}
               >
                 <ListChecks className="h-3.5 w-3.5" />
@@ -220,7 +220,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="whitespace-nowrap flex items-center gap-1.5"
+                className="w-full flex items-center gap-1.5"
                 onClick={() => scrollToSection('roadmap')}
               >
                 <Map className="h-3.5 w-3.5" />
@@ -230,7 +230,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="whitespace-nowrap flex items-center gap-1.5"
+                className="w-full flex items-center gap-1.5"
                 onClick={() => scrollToSection('subtopics')}
               >
                 <LinkIcon className="h-3.5 w-3.5" />
@@ -240,7 +240,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="whitespace-nowrap flex items-center gap-1.5"
+                className="w-full flex items-center gap-1.5"
                 onClick={() => scrollToSection('key-takeaways')}
               >
                 <Check className="h-3.5 w-3.5" />
@@ -250,7 +250,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="whitespace-nowrap flex items-center gap-1.5"
+                className="w-full flex items-center gap-1.5"
                 onClick={() => scrollToSection('faq')}
               >
                 <HelpCircle className="h-3.5 w-3.5" />
