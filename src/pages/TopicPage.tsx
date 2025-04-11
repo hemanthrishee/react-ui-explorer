@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -260,22 +259,22 @@ const TopicPage = () => {
             </div>
           </div>
         </div>
-        <HeroSection shortDescription={topicData["Short Description"]["Description"].toString()} topicName={topicName} />
+        <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={topicName} />
         <WhyLearnSection 
-            needToLearn={topicData[`Need to Learn ${topicName}`]["Description"].toString()} 
+            needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
             topicName={topicName} 
-            benefit1Heading={topicData[`Need to Learn ${topicName}`]["Benefit 1"]["heading"].toString()} 
-            benefit1Description={topicData[`Need to Learn ${topicName}`]["Benefit 1"]["description"].toString()}
-            benefit2Heading={topicData[`Need to Learn ${topicName}`]["Benefit 2"]["heading"].toString()}
-            benefit2Description={topicData[`Need to Learn ${topicName}`]["Benefit 2"]["description"].toString()}
-            benefit3Heading={topicData[`Need to Learn ${topicName}`]["Benefit 3"]["heading"].toString()}
-            benefit3Description={topicData[`Need to Learn ${topicName}`]["Benefit 3"]["description"].toString()}
-            />
-        <RoadmapSection topicName={topicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]["Description"]['prerequisites']} levels={topicData[`Road Map to Learn ${topicName}`]["Description"]['levels']} />
-        <SubtopicsSection subTopics={topicData["SubTopics"]["Description"]["subtopics"]} topicName={topicName} />
-        <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]["Description"]} topicName={topicName} />
-        <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]["Description"]} />
-        <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]["Description"]} />
+            benefit1Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["heading"]?.toString() || ""}
+            benefit1Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["description"]?.toString() || ""}
+            benefit2Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["heading"]?.toString() || ""}
+            benefit2Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["description"]?.toString() || ""}
+            benefit3Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["heading"]?.toString() || ""}
+            benefit3Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["description"]?.toString() || ""}
+        />
+        <RoadmapSection topicName={topicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
+        <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={topicName} />
+        <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={topicName} />
+        <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
+        <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
       </main>
       <Footer />
     </div>
