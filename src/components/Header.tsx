@@ -77,9 +77,9 @@ const Header: React.FC = () => {
         <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Choose Quiz Type</DialogTitle>
+              <DialogTitle>Quiz Configuration</DialogTitle>
               <DialogDescription>
-                Select the type of quiz you want to generate
+                Customize your quiz settings
               </DialogDescription>
             </DialogHeader>
             <QuizTypeSelector onClose={() => setShowQuizDialog(false)} />
