@@ -5,10 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Code, Search, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import QuizTypeSelector from '@/components/QuizTypeSelector';
 
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuizDialog, setShowQuizDialog] = useState(false);
   const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -21,6 +31,10 @@ const Header: React.FC = () => {
     
     setIsLoading(true);
     navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+  };
+
+  const handleGenerateQuiz = () => {
+    setShowQuizDialog(true);
   };
 
   return (
@@ -53,9 +67,24 @@ const Header: React.FC = () => {
           </Button>
         </form>
         
-        <Button className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
+        <Button 
+          className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
+          onClick={handleGenerateQuiz}
+        >
           Generate Quiz
         </Button>
+
+        <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Choose Quiz Type</DialogTitle>
+              <DialogDescription>
+                Select the type of quiz you want to generate
+              </DialogDescription>
+            </DialogHeader>
+            <QuizTypeSelector onClose={() => setShowQuizDialog(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   );
