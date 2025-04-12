@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -10,7 +11,7 @@ import FaqSection from '@/components/FaqSection';
 import RelatedTopicsSection from '@/components/RelatedTopicsSection';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check } from 'lucide-react';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2 } from 'lucide-react';
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 
@@ -184,33 +185,33 @@ const TopicPage = () => {
       <Header />
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <Button 
-                variant="outline" 
-                onClick={goBack} 
-                className="flex items-center gap-2 self-start"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Search
-              </Button>
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={goBack} 
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Search
+            </Button>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 w-full">
+            <Separator orientation="vertical" className="h-8 hidden sm:block" />
+            
+            <div className="flex flex-wrap gap-1">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full flex items-center gap-1.5"
+                className="flex items-center gap-1.5"
                 onClick={() => scrollToSection('introduction')}
               >
                 <BookOpen className="h-3.5 w-3.5" />
-                Introduction
+                Intro
               </Button>
               
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full flex items-center gap-1.5"
+                className="flex items-center gap-1.5"
                 onClick={() => scrollToSection('why-learn')}
               >
                 <ListChecks className="h-3.5 w-3.5" />
@@ -220,7 +221,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full flex items-center gap-1.5"
+                className="flex items-center gap-1.5"
                 onClick={() => scrollToSection('roadmap')}
               >
                 <Map className="h-3.5 w-3.5" />
@@ -230,7 +231,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full flex items-center gap-1.5"
+                className="flex items-center gap-1.5"
                 onClick={() => scrollToSection('subtopics')}
               >
                 <LinkIcon className="h-3.5 w-3.5" />
@@ -240,7 +241,7 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full flex items-center gap-1.5"
+                className="flex items-center gap-1.5"
                 onClick={() => scrollToSection('key-takeaways')}
               >
                 <Check className="h-3.5 w-3.5" />
@@ -250,11 +251,21 @@ const TopicPage = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="w-full flex items-center gap-1.5"
+                className="flex items-center gap-1.5"
                 onClick={() => scrollToSection('faq')}
               >
                 <HelpCircle className="h-3.5 w-3.5" />
                 FAQ
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-1.5"
+                onClick={() => scrollToSection('related')}
+              >
+                <Link2 className="h-3.5 w-3.5" />
+                Related
               </Button>
             </div>
           </div>
