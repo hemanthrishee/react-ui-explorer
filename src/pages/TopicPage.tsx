@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -185,7 +184,7 @@ const TopicPage = () => {
       <Header />
       <main className="flex-grow">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between w-full gap-2">
             <Button 
               variant="outline" 
               onClick={goBack} 
@@ -195,9 +194,7 @@ const TopicPage = () => {
               Back to Search
             </Button>
             
-            <Separator orientation="vertical" className="h-8 hidden sm:block" />
-            
-            <div className="flex flex-wrap gap-1">
+            <div className="flex-1 flex flex-wrap justify-end gap-1 sm:justify-between">
               <Button 
                 variant="ghost" 
                 size="sm" 
