@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Code, Search, Loader2 } from 'lucide-react';
@@ -20,6 +20,40 @@ const Header: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showQuizDialog, setShowQuizDialog] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showQuizButton, setShowQuizButton] = useState(false);
+
+  // Determine if we should show the quiz button
+  useEffect(() => {
+    // Check if we're on a topic page
+    const isTopicPage = location.pathname.startsWith('/topic/');
+    
+    // Initially hide the button when a new topic page loads
+    if (isTopicPage) {
+      // We'll set this to true once the page has loaded its content
+      // This gets updated by the window event listener
+      setShowQuizButton(false);
+    } else {
+      // Hide the button on non-topic pages
+      setShowQuizButton(false);
+    }
+  }, [location.pathname]);
+
+  // Listen for a custom event from TopicPage when content is loaded
+  useEffect(() => {
+    const handleTopicLoaded = () => {
+      if (location.pathname.startsWith('/topic/')) {
+        setShowQuizButton(true);
+      }
+    };
+
+    // Listen for the custom event
+    window.addEventListener('topicContentLoaded', handleTopicLoaded);
+
+    return () => {
+      window.removeEventListener('topicContentLoaded', handleTopicLoaded);
+    };
+  }, [location.pathname]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,12 +101,14 @@ const Header: React.FC = () => {
           </Button>
         </form>
         
-        <Button 
-          className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
-          onClick={handleGenerateQuiz}
-        >
-          Generate Quiz
-        </Button>
+        {showQuizButton && (
+          <Button 
+            className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
+            onClick={handleGenerateQuiz}
+          >
+            Generate Quiz
+          </Button>
+        )}
 
         <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
           <DialogContent className="sm:max-w-md">

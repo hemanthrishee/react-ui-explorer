@@ -104,6 +104,8 @@ const TopicPage = () => {
         setTopicData(resultData[resultData["topic"]]);
         setTopicName(resultData["topic"])
         setLoading(false);
+        
+        window.dispatchEvent(new Event('topicContentLoaded'));
       } catch (err) {
         console.error("Error fetching topic data:", err);
         setError(`Failed to load data for "${formattedTopicName}". Please try again later.`);
