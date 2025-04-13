@@ -1,6 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2 } from 'lucide-react';
+import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 import HeroSection from '@/components/HeroSection';
 import WhyLearnSection from '@/components/WhyLearnSection';
 import RoadmapSection from '@/components/RoadmapSection';
@@ -8,11 +12,6 @@ import SubtopicsSection from '@/components/SubtopicsSection';
 import KeyTakeawaysSection from '@/components/KeyTakeawaysSection';
 import FaqSection from '@/components/FaqSection';
 import RelatedTopicsSection from '@/components/RelatedTopicsSection';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2 } from 'lucide-react';
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
 
 interface TopicData {
   [topic: string]: {
@@ -64,7 +63,7 @@ interface TopicData {
 }
 
 const TopicPage = () => {
-  const [topicName, setTopicName] = useState(useParams().topicName || '');
+  const [topicName, setTopicName] = useState(useParams().topic || '');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [topicData, setTopicData] = useState<TopicData | null>(null);
@@ -127,53 +126,41 @@ const TopicPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-16 w-16 animate-spin text-react-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold mb-2">Generating content...</h2>
-            <p className="text-gray-500">Creating a comprehensive guide for {formattedTopicName}</p>
-          </div>
-        </main>
-        <Footer />
+      <div className="flex-grow flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-16 w-16 animate-spin text-react-primary mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Generating content...</h2>
+          <p className="text-gray-500">Creating a comprehensive guide for {formattedTopicName}</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center max-w-md mx-auto px-4">
-            <h2 className="text-2xl font-semibold mb-4 text-red-500">Oops! Something went wrong</h2>
-            <p className="mb-6 text-gray-600">{error}</p>
-            <Button onClick={goBack} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Search
-            </Button>
-          </div>
-        </main>
-        <Footer />
+      <div className="flex-grow flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <h2 className="text-2xl font-semibold mb-4 text-red-500">Oops! Something went wrong</h2>
+          <p className="mb-6 text-gray-600">{error}</p>
+          <Button onClick={goBack} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Search
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!topicData) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-4">No data found</h2>
-            <Button onClick={goBack} className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Search
-            </Button>
-          </div>
-        </main>
-        <Footer />
+      <div className="flex-grow flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">No data found</h2>
+          <Button onClick={goBack} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Search
+          </Button>
+        </div>
       </div>
     );
   }
@@ -182,111 +169,107 @@ const TopicPage = () => {
   const data = topicData[topic];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-grow">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap items-center justify-between w-full gap-2">
+    <div className="flex-grow">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between w-full gap-2">
+          <Button 
+            variant="outline" 
+            onClick={goBack} 
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Search
+          </Button>
+          
+          <div className="flex-1 flex flex-wrap justify-end gap-1 sm:justify-between">
             <Button 
-              variant="outline" 
-              onClick={goBack} 
-              className="flex items-center gap-2"
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('introduction')}
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Search
+              <BookOpen className="h-3.5 w-3.5" />
+              Intro
             </Button>
             
-            <div className="flex-1 flex flex-wrap justify-end gap-1 sm:justify-between">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('introduction')}
-              >
-                <BookOpen className="h-3.5 w-3.5" />
-                Intro
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('why-learn')}
-              >
-                <ListChecks className="h-3.5 w-3.5" />
-                Why Learn
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('roadmap')}
-              >
-                <Map className="h-3.5 w-3.5" />
-                Roadmap
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('subtopics')}
-              >
-                <LinkIcon className="h-3.5 w-3.5" />
-                Topics
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('key-takeaways')}
-              >
-                <Check className="h-3.5 w-3.5" />
-                Takeaways
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('faq')}
-              >
-                <HelpCircle className="h-3.5 w-3.5" />
-                FAQ
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="flex items-center gap-1.5"
-                onClick={() => scrollToSection('related')}
-              >
-                <Link2 className="h-3.5 w-3.5" />
-                Related
-              </Button>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('why-learn')}
+            >
+              <ListChecks className="h-3.5 w-3.5" />
+              Why Learn
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('roadmap')}
+            >
+              <Map className="h-3.5 w-3.5" />
+              Roadmap
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('subtopics')}
+            >
+              <LinkIcon className="h-3.5 w-3.5" />
+              Topics
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('key-takeaways')}
+            >
+              <Check className="h-3.5 w-3.5" />
+              Takeaways
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('faq')}
+            >
+              <HelpCircle className="h-3.5 w-3.5" />
+              FAQ
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-1.5"
+              onClick={() => scrollToSection('related')}
+            >
+              <Link2 className="h-3.5 w-3.5" />
+              Related
+            </Button>
           </div>
         </div>
-        <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={topicName} />
-        <WhyLearnSection 
-            needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
-            topicName={topicName} 
-            benefit1Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["heading"]?.toString() || ""}
-            benefit1Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["description"]?.toString() || ""}
-            benefit2Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["heading"]?.toString() || ""}
-            benefit2Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["description"]?.toString() || ""}
-            benefit3Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["heading"]?.toString() || ""}
-            benefit3Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["description"]?.toString() || ""}
-        />
-        <RoadmapSection topicName={topicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
-        <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={topicName} />
-        <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={topicName} />
-        <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
-        <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
-      </main>
-      <Footer />
+      </div>
+      <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={topicName} />
+      <WhyLearnSection 
+          needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
+          topicName={topicName} 
+          benefit1Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["heading"]?.toString() || ""}
+          benefit1Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["description"]?.toString() || ""}
+          benefit2Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["heading"]?.toString() || ""}
+          benefit2Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["description"]?.toString() || ""}
+          benefit3Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["heading"]?.toString() || ""}
+          benefit3Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["description"]?.toString() || ""}
+      />
+      <RoadmapSection topicName={topicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
+      <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={topicName} />
+      <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={topicName} />
+      <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
+      <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
     </div>
   );
 };

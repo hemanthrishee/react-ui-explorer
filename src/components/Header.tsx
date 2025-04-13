@@ -24,12 +24,7 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const isTopicPage = location.pathname.startsWith('/topic/');
-    
-    if (isTopicPage) {
-      setShowQuizButton(false);
-    } else {
-      setShowQuizButton(false);
-    }
+    setShowQuizButton(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -56,6 +51,9 @@ const Header: React.FC = () => {
     
     setIsLoading(true);
     navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
   };
 
   const handleGenerateQuiz = () => {
@@ -98,7 +96,6 @@ const Header: React.FC = () => {
           <Button 
             type="submit" 
             className="ml-2 bg-react-primary text-react-secondary hover:bg-react-primary/90"
-            onClick={handleSearch}
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}
