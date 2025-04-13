@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -34,7 +33,6 @@ const QuizPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Parse quiz config from location state
   const defaultConfig: QuizConfig = {
     quizType: 'mcq',
     timeMode: 'timed',
@@ -45,7 +43,6 @@ const QuizPage: React.FC = () => {
   
   const quizConfig = location.state?.quizConfig || defaultConfig;
   
-  // State for quiz data and user answers
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number[]>>({});
@@ -56,17 +53,14 @@ const QuizPage: React.FC = () => {
   const [score, setScore] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   
-  // Calculate time per question if timerPerQuestion is enabled
   const timePerQuestion = quizConfig.timerPerQuestion 
     ? Math.floor((quizConfig.duration * 60) / quizConfig.questionCount) 
     : 0;
   
-  // Load quiz data
   useEffect(() => {
     if (topic) {
       const quiz = getQuizByTopic(topic);
       
-      // Limit questions to the configured count
       const limitedQuestions = quiz.questions
         .filter(q => quizConfig.quizType === q.type || quizConfig.quizType === 'all')
         .slice(0, quizConfig.questionCount);
@@ -78,14 +72,12 @@ const QuizPage: React.FC = () => {
     }
   }, [topic, quizConfig]);
   
-  // Initialize question timer when starting quiz or changing questions
   useEffect(() => {
     if (quizStarted && quizConfig.timerPerQuestion && !quizEnded) {
       setQuestionTimeRemaining(timePerQuestion);
     }
   }, [quizStarted, activeQuestionIndex, quizConfig.timerPerQuestion, timePerQuestion, quizEnded]);
   
-  // Main timer logic
   useEffect(() => {
     if (!quizStarted || quizEnded || quizConfig.timeMode === 'practice') return;
     
@@ -103,7 +95,6 @@ const QuizPage: React.FC = () => {
     return () => clearInterval(timerId);
   }, [quizStarted, quizEnded, quizConfig.timeMode]);
   
-  // Per-question timer logic
   useEffect(() => {
     if (!quizStarted || quizEnded || !quizConfig.timerPerQuestion) return;
     
@@ -121,7 +112,6 @@ const QuizPage: React.FC = () => {
     return () => clearInterval(questionTimerId);
   }, [quizStarted, quizEnded, quizConfig.timerPerQuestion, questionTimeRemaining]);
   
-  // Start the quiz
   const startQuiz = () => {
     setQuizStarted(true);
     if (quizConfig.timeMode === 'timed') {
@@ -132,7 +122,6 @@ const QuizPage: React.FC = () => {
     }
   };
   
-  // End the quiz and calculate score
   const endQuiz = useCallback(() => {
     setQuizEnded(true);
     
@@ -144,12 +133,10 @@ const QuizPage: React.FC = () => {
       const userAnswers = selectedAnswers[question.id] || [];
       
       if (question.type === 'mcq' || question.type === 'true-false') {
-        // For single-answer questions
         if (userAnswers.length === 1 && userAnswers[0] === question.correctAnswers[0]) {
           correctAnswers++;
         }
       } else if (question.type === 'multiple-correct') {
-        // For multiple-correct questions, all selected options must match correct answers
         const isCorrect = 
           userAnswers.length === question.correctAnswers.length && 
           userAnswers.every(answer => question.correctAnswers.includes(answer)) &&
@@ -167,26 +154,22 @@ const QuizPage: React.FC = () => {
     toast.success(`Quiz completed! Your score: ${finalScore}%`);
   }, [quizData, selectedAnswers]);
   
-  // Handle selection of answers
   const handleAnswerSelect = (questionId: string, optionIndex: number, multiple: boolean = false) => {
     setSelectedAnswers(prev => {
       const current = prev[questionId] || [];
       
       if (multiple) {
-        // For multiple-answer questions
         if (current.includes(optionIndex)) {
           return { ...prev, [questionId]: current.filter(idx => idx !== optionIndex) };
         } else {
           return { ...prev, [questionId]: [...current, optionIndex] };
         }
       } else {
-        // For single-answer questions
         return { ...prev, [questionId]: [optionIndex] };
       }
     });
   };
   
-  // Clear selected answers for a question
   const clearAnswers = (questionId: string) => {
     setSelectedAnswers(prev => ({
       ...prev,
@@ -195,7 +178,6 @@ const QuizPage: React.FC = () => {
     toast.info("Selection cleared");
   };
   
-  // Navigation between questions
   const goToNextQuestion = useCallback(() => {
     if (!quizData) return;
     
@@ -212,7 +194,6 @@ const QuizPage: React.FC = () => {
     }
   };
   
-  // Submit the quiz
   const handleSubmitQuiz = () => {
     setIsSubmitting(true);
     setTimeout(() => {
@@ -221,14 +202,12 @@ const QuizPage: React.FC = () => {
     }, 1000);
   };
   
-  // Format time display
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
   
-  // Calculate progress
   const calculateProgress = (): number => {
     if (!quizData || quizData.questions.length === 0) return 0;
     return ((activeQuestionIndex + 1) / quizData.questions.length) * 100;
@@ -243,17 +222,15 @@ const QuizPage: React.FC = () => {
     );
   }
   
-  // Current question to display
   const currentQuestion = quizData.questions[activeQuestionIndex];
   const isMultipleCorrect = currentQuestion.type === 'multiple-correct';
   const userAnswers = selectedAnswers[currentQuestion.id] || [];
   
-  // Show intro screen if quiz hasn't started
   if (!quizStarted) {
     return (
-      <div className="container mx-auto max-w-4xl py-8 px-4">
-        <Card className="shadow-lg">
-          <CardHeader>
+      <div className="container mx-auto max-w-4xl py-8 px-4 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-lg shadow-lg">
+          <CardHeader className="text-center">
             <CardTitle className="text-2xl">{quizData.topic} Quiz</CardTitle>
             <CardDescription>
               {quizConfig.quizType === 'mcq' ? 'Multiple Choice Questions' : 
@@ -261,20 +238,20 @@ const QuizPage: React.FC = () => {
                'Multiple Correct Answers Questions'}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p>You will have {quizConfig.timeMode === 'practice' ? 'unlimited time' : `${quizConfig.duration} minutes`} to complete {quizData.questions.length} questions.</p>
+          <CardContent className="flex flex-col items-center justify-center space-y-4">
+            <div className="space-y-4 w-full">
+              <p className="text-center">You will have {quizConfig.timeMode === 'practice' ? 'unlimited time' : `${quizConfig.duration} minutes`} to complete {quizData.questions.length} questions.</p>
               
               {quizConfig.timerPerQuestion && (
-                <p>Each question has a time limit of {formatTime(timePerQuestion)} seconds.</p>
+                <p className="text-center">Each question has a time limit of {formatTime(timePerQuestion)} seconds.</p>
               )}
               
-              <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800">
-                <div className="flex items-start gap-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800 flex items-center justify-center">
+                <div className="flex items-start gap-3 max-w-md">
                   <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold">Quiz Instructions</h4>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
+                    <h4 className="font-semibold text-center">Quiz Instructions</h4>
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-left">
                       <li>Read each question carefully before answering.</li>
                       <li>{isMultipleCorrect ? 'Some questions may have multiple correct answers.' : 'Each question has exactly one correct answer.'}</li>
                       <li>You can clear your selection for any question.</li>
@@ -294,7 +271,6 @@ const QuizPage: React.FC = () => {
     );
   }
   
-  // Show results screen if quiz has ended
   if (quizEnded) {
     return <QuizResults 
       quizData={quizData}
@@ -304,7 +280,6 @@ const QuizPage: React.FC = () => {
     />;
   }
   
-  // Quiz main interface
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
       <Card className="shadow-lg">
@@ -336,7 +311,6 @@ const QuizPage: React.FC = () => {
           <div className="text-lg font-medium">{currentQuestion.question}</div>
           
           {isMultipleCorrect ? (
-            // Multiple Correct Answers UI
             <div className="space-y-3">
               {currentQuestion.options.map((option, idx) => (
                 <div key={idx} className="flex items-center space-x-2">
@@ -355,7 +329,6 @@ const QuizPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            // Single Answer UI (MCQ or True/False)
             <RadioGroup 
               value={userAnswers.length ? userAnswers[0].toString() : undefined}
               className="space-y-3"
@@ -431,7 +404,6 @@ const QuizPage: React.FC = () => {
   );
 };
 
-// Quiz Results Component
 interface QuizResultsProps {
   quizData: QuizData;
   selectedAnswers: Record<string, number[]>;
