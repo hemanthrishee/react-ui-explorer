@@ -188,12 +188,6 @@ const QuizPage: React.FC = () => {
     }
   }, [activeQuestionIndex, quizData, endQuiz]);
   
-  const goToPrevQuestion = () => {
-    if (activeQuestionIndex > 0) {
-      setActiveQuestionIndex(prevIndex => prevIndex - 1);
-    }
-  };
-  
   const handleSubmitQuiz = () => {
     setIsSubmitting(true);
     setTimeout(() => {
@@ -234,8 +228,8 @@ const QuizPage: React.FC = () => {
             <CardTitle className="text-2xl">{quizData.topic} Quiz</CardTitle>
             <CardDescription>
               {quizConfig.quizType === 'mcq' ? 'Multiple Choice Questions' : 
-               quizConfig.quizType === 'true-false' ? 'True/False Questions' : 
-               'Multiple Correct Answers Questions'}
+                quizConfig.quizType === 'true-false' ? 'True/False Questions' : 
+                'Multiple Correct Answers Questions'}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center space-y-4">
@@ -338,6 +332,7 @@ const QuizPage: React.FC = () => {
                   <RadioGroupItem 
                     value={idx.toString()} 
                     id={`option-${idx}`} 
+                    checked={userAnswers.includes(idx)}
                     onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
                   />
                   <Label 
@@ -364,14 +359,6 @@ const QuizPage: React.FC = () => {
         </CardContent>
         
         <CardFooter className="flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={goToPrevQuestion} 
-            disabled={activeQuestionIndex === 0}
-          >
-            <ArrowLeft className="mr-1 h-4 w-4" /> Previous
-          </Button>
-          
           <div className="flex gap-2">
             {activeQuestionIndex === quizData.questions.length - 1 && (
               <Button 
