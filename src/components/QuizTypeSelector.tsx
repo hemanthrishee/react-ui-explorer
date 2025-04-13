@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -19,12 +18,21 @@ import { Input } from "@/components/ui/input";
 
 interface QuizTypeSelectorProps {
   onClose: () => void;
+  onSubmit?: (config: QuizConfig) => void;
+}
+
+export interface QuizConfig {
+  quizType: 'mcq' | 'true-false' | 'multiple-correct';
+  timeMode: 'timed' | 'practice';
+  duration: number; // in minutes
+  questionCount: number;
+  timerPerQuestion: boolean;
 }
 
 type QuizType = 'mcq' | 'true-false' | 'multiple-correct';
 type TimeMode = 'timed' | 'practice';
 
-const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose }) => {
+const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }) => {
   const [selectedType, setSelectedType] = useState<QuizType>('mcq');
   const [step, setStep] = useState<'quiz-type' | 'time-selection' | 'questions-count'>('quiz-type');
   const [timeMode, setTimeMode] = useState<TimeMode>('timed');
@@ -54,19 +62,31 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose }) => {
   };
 
   const handleGenerateQuiz = () => {
-    const quizTypeName = getQuizTypeName(selectedType);
-    let timeConfig;
+    const quizConfig: QuizConfig = {
+      quizType: selectedType,
+      timeMode,
+      duration,
+      questionCount,
+      timerPerQuestion
+    };
     
-    if (timeMode === 'practice') {
-      timeConfig = 'Practice Mode (Unlimited Time)';
+    if (onSubmit) {
+      onSubmit(quizConfig);
     } else {
-      timeConfig = timerPerQuestion 
-        ? `Timer per question, ${duration} Minute${duration !== 1 ? 's' : ''} total` 
-        : `${duration} Minute${duration !== 1 ? 's' : ''} total`;
+      const quizTypeName = getQuizTypeName(selectedType);
+      let timeConfig;
+      
+      if (timeMode === 'practice') {
+        timeConfig = 'Practice Mode (Unlimited Time)';
+      } else {
+        timeConfig = timerPerQuestion 
+          ? `Timer per question, ${duration} Minute${duration !== 1 ? 's' : ''} total` 
+          : `${duration} Minute${duration !== 1 ? 's' : ''} total`;
+      }
+      
+      toast.success(`Generating ${quizTypeName} quiz with ${questionCount} questions - ${timeConfig}`);
+      onClose();
     }
-    
-    toast.success(`Generating ${quizTypeName} quiz with ${questionCount} questions - ${timeConfig}`);
-    onClose();
   };
 
   const getQuizTypeName = (type: QuizType): string => {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,19 @@ const Header: React.FC = () => {
     setShowQuizDialog(true);
   };
 
+  const handleQuizConfigSubmit = (quizConfig: any) => {
+    setShowQuizDialog(false);
+    
+    // Extract the topic from the URL
+    const topicMatch = location.pathname.match(/\/topic\/(.+)/);
+    if (topicMatch && topicMatch[1]) {
+      const topic = decodeURIComponent(topicMatch[1]);
+      
+      // Navigate to the quiz page with the quiz configuration
+      navigate(`/quiz/${topic}`, { state: { quizConfig } });
+    }
+  };
+
   return (
     <header className="bg-react-secondary text-white py-4">
       <div className="container mx-auto flex items-center justify-between px-4">
@@ -108,7 +122,7 @@ const Header: React.FC = () => {
                 Customize your quiz settings
               </DialogDescription>
             </DialogHeader>
-            <QuizTypeSelector onClose={() => setShowQuizDialog(false)} />
+            <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={handleQuizConfigSubmit} />
           </DialogContent>
         </Dialog>
       </div>
