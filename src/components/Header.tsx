@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,8 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter
+  DialogDescription
 } from "@/components/ui/dialog";
 import QuizTypeSelector from '@/components/QuizTypeSelector';
 
@@ -23,23 +21,16 @@ const Header: React.FC = () => {
   const location = useLocation();
   const [showQuizButton, setShowQuizButton] = useState(false);
 
-  // Determine if we should show the quiz button
   useEffect(() => {
-    // Check if we're on a topic page
     const isTopicPage = location.pathname.startsWith('/topic/');
     
-    // Initially hide the button when a new topic page loads
     if (isTopicPage) {
-      // We'll set this to true once the page has loaded its content
-      // This gets updated by the window event listener
       setShowQuizButton(false);
     } else {
-      // Hide the button on non-topic pages
       setShowQuizButton(false);
     }
   }, [location.pathname]);
 
-  // Listen for a custom event from TopicPage when content is loaded
   useEffect(() => {
     const handleTopicLoaded = () => {
       if (location.pathname.startsWith('/topic/')) {
@@ -47,7 +38,6 @@ const Header: React.FC = () => {
       }
     };
 
-    // Listen for the custom event
     window.addEventListener('topicContentLoaded', handleTopicLoaded);
 
     return () => {
