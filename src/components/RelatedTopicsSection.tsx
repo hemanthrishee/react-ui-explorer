@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { reactData } from '@/data/reactData';
 import { 
   Card, 
   CardContent, 
