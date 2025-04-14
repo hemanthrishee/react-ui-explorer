@@ -41,7 +41,7 @@ const QuizPage: React.FC = () => {
     timerPerQuestion: false
   };
   
-  const quizConfig = location.state?.quizConfig || defaultConfig;
+  const quizConfig: QuizConfig = location.state?.quizConfig || defaultConfig;
   
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
@@ -58,19 +58,16 @@ const QuizPage: React.FC = () => {
     : 0;
   
   useEffect(() => {
-    if (topic) {
-      const quiz = getQuizByTopic(topic);
-      
-      const limitedQuestions = quiz.questions
-        .filter(q => quizConfig.quizType === q.type || quizConfig.quizType === 'all')
-        .slice(0, quizConfig.questionCount);
-      
-      setQuizData({
-        ...quiz,
-        questions: limitedQuestions
-      });
-    }
-  }, [topic, quizConfig]);
+      if (topic) {
+        getQuizByTopic(topic, quizConfig.quizType, quizConfig.questionCount).then(quiz => {
+          setQuizData({
+            ...quiz,
+          });
+        }).catch(error => {
+          console.error("Failed to fetch quiz data:", error);
+        });
+      }
+    }, [topic, quizConfig]);
   
   useEffect(() => {
     if (quizStarted && quizConfig.timerPerQuestion && !quizEnded) {

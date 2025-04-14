@@ -151,13 +151,32 @@ export const reactQuiz: QuizData = {
 };
 
 // Get quiz data based on topic
-export const getQuizByTopic = (topic: string): QuizData => {
+export const getQuizByTopic = async (topic: string, question_type: string, num_questions: number): Promise<QuizData> => {
   const lowerCaseTopic = topic.toLowerCase();
   
-  if (lowerCaseTopic.includes('python')) {
-    return pythonQuiz;
-  } else if (lowerCaseTopic.includes('react')) {
-    return reactQuiz;
+  try {
+    const response = await fetch('http://localhost:8000/gemini-search/generate-quiz', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        topic: lowerCaseTopic,
+        num_questions: num_questions,
+        question_type: question_type
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    return {topic: lowerCaseTopic, questions: data.quiz.quiz}
+  } catch (err) {
+    console.error("Error fetching topic data:", err);
   }
   
   // Default to Python quiz if topic not found
