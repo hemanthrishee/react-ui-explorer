@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -75,7 +74,6 @@ const QuizPage: React.FC = () => {
             ...quiz,
           });
           
-          // Initialize empty answer slots for each question
           const initialAnswers: Record<string, number[]> = {};
           quiz.questions.forEach((q, index) => {
             initialAnswers[index] = [];
@@ -140,7 +138,6 @@ const QuizPage: React.FC = () => {
   
   const calculateQuestionScore = (question: QuizQuestion, userAnswers: number[]): { score: number, isCorrect: boolean, partiallyCorrect?: boolean } => {
     if (userAnswers.length === 0) {
-      // Skipped question
       return { score: 0, isCorrect: false };
     }
     
@@ -155,7 +152,6 @@ const QuizPage: React.FC = () => {
         return { score: 0, isCorrect: false };
       }
     } else if (question.type === 'multiple-correct') {
-      // For multiple-correct questions
       const correctAnswersSelected = userAnswers.filter(answer => 
         question.correctAnswers.includes(answer)
       ).length;
@@ -164,13 +160,10 @@ const QuizPage: React.FC = () => {
         !question.correctAnswers.includes(answer)
       ).length;
       
-      // All correct answers selected and no incorrect ones
       const allCorrect = correctAnswersSelected === question.correctAnswers.length && incorrectAnswersSelected === 0;
       
-      // Some correct answers but not all, and no incorrect ones
       const partiallyCorrect = correctAnswersSelected > 0 && correctAnswersSelected < question.correctAnswers.length && incorrectAnswersSelected === 0;
       
-      // Any incorrect answers selected
       const anyIncorrect = incorrectAnswersSelected > 0;
       
       if (allCorrect) {
@@ -219,10 +212,8 @@ const QuizPage: React.FC = () => {
       totalScore += result.score;
     });
     
-    // Ensure totalScore is not negative
     totalScore = Math.max(0, totalScore);
     
-    // Calculate percentage (max possible score is 4 points per question)
     const maxPossibleScore = quizData.questions.length * 4;
     const scorePercentage = Math.round((totalScore / maxPossibleScore) * 100);
     
@@ -238,18 +229,15 @@ const QuizPage: React.FC = () => {
       let newAnswers;
       
       if (multiple) {
-        // For multiple-correct questions
         if (current.includes(optionIndex)) {
           newAnswers = current.filter(idx => idx !== optionIndex);
         } else {
           newAnswers = [...current, optionIndex];
         }
       } else {
-        // For single-answer questions
         newAnswers = [optionIndex];
       }
       
-      // Create a new object to ensure state updates
       return { ...prev, [questionIndex]: newAnswers };
     });
   };
@@ -530,9 +518,15 @@ const QuizResults: React.FC<QuizResultsProps> = ({
 }) => {
   const [showExplanations, setShowExplanations] = useState<boolean>(true);
   
-  const getScoreColor = (score: number): string => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-amber-600';
+  const totalPoints = Object.values(questionResults).reduce((sum, result) => sum + result.score, 0);
+  
+  const maxPossiblePoints = quizData.questions.length * 4;
+  
+  const scorePercentage = Math.round((totalPoints / maxPossiblePoints) * 100);
+  
+  const getScoreColor = (percentage: number): string => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 60) return 'text-amber-600';
     return 'text-red-600';
   };
   
@@ -549,12 +543,17 @@ const QuizResults: React.FC<QuizResultsProps> = ({
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg">
             <div className="text-4xl font-bold mb-2 text-center">
-              <span className={getScoreColor(score)}>{score}%</span>
+              <span className={getScoreColor(scorePercentage)}>
+                {totalPoints} / {maxPossiblePoints} points
+              </span>
             </div>
             <div className="text-sm text-muted-foreground">
-              {score >= 80 ? 'Excellent work!' : 
-              score >= 60 ? 'Good job!' : 
-              'Keep practicing!'}
+              {scorePercentage >= 80 ? 'Excellent work!' : 
+               scorePercentage >= 60 ? 'Good job!' : 
+               'Keep practicing!'}
+            </div>
+            <div className="text-sm text-muted-foreground mt-1">
+              ({scorePercentage}%)
             </div>
           </div>
           
