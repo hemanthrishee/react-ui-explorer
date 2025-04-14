@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -11,7 +12,8 @@ import {
   CheckSquare,
   Square,
   MinusCircle,
-  HelpCircle 
+  HelpCircle,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,7 +55,8 @@ const QuizPage: React.FC = () => {
   const [quizStarted, setQuizStarted] = useState<boolean>(false);
   const [quizEnded, setQuizEnded] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(quizConfig.duration * 60); // in seconds
-  const [questionTimeRemaining, setQuestionTimeRemaining] = useState<number>(0);
+  const [questionTimers, setQuestionTimers] = useState<Record<number, number>>({});
+  const [lockedQuestions, setLockedQuestions] = useState<number[]>([]);
   const [score, setScore] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [questionResults, setQuestionResults] = useState<Record<number, {
@@ -88,9 +91,16 @@ const QuizPage: React.FC = () => {
   
   useEffect(() => {
     if (quizStarted && quizConfig.timerPerQuestion && !quizEnded) {
-      setQuestionTimeRemaining(timePerQuestion);
+      // Initialize timers for all questions if they don't exist yet
+      if (Object.keys(questionTimers).length === 0 && quizData) {
+        const initialTimers: Record<number, number> = {};
+        quizData.questions.forEach((_, index) => {
+          initialTimers[index] = timePerQuestion;
+        });
+        setQuestionTimers(initialTimers);
+      }
     }
-  }, [quizStarted, activeQuestionIndex, quizConfig.timerPerQuestion, timePerQuestion, quizEnded]);
+  }, [quizStarted, quizData, quizConfig.timerPerQuestion, timePerQuestion, quizEnded, questionTimers]);
   
   useEffect(() => {
     if (!quizStarted || quizEnded || quizConfig.timeMode === 'practice') return;
@@ -113,26 +123,44 @@ const QuizPage: React.FC = () => {
     if (!quizStarted || quizEnded || !quizConfig.timerPerQuestion) return;
     
     const questionTimerId = setInterval(() => {
-      setQuestionTimeRemaining(prevTime => {
-        if (prevTime <= 1) {
+      setQuestionTimers(prevTimers => {
+        const currentQuestionTime = prevTimers[activeQuestionIndex] || 0;
+        
+        if (currentQuestionTime <= 1) {
           clearInterval(questionTimerId);
-          goToNextQuestion();
-          return 0;
+          // Lock the question that ran out of time
+          if (!lockedQuestions.includes(activeQuestionIndex)) {
+            setLockedQuestions(prev => [...prev, activeQuestionIndex]);
+          }
+          toast.error("Time's up for this question!");
+          
+          // Go to the next unlocked question
+          goToNextAvailableQuestion();
+          
+          return prevTimers;
         }
-        return prevTime - 1;
+        
+        return {
+          ...prevTimers,
+          [activeQuestionIndex]: currentQuestionTime - 1
+        };
       });
     }, 1000);
     
     return () => clearInterval(questionTimerId);
-  }, [quizStarted, quizEnded, quizConfig.timerPerQuestion, questionTimeRemaining]);
+  }, [quizStarted, quizEnded, quizConfig.timerPerQuestion, activeQuestionIndex]);
   
   const startQuiz = () => {
     setQuizStarted(true);
     if (quizConfig.timeMode === 'timed') {
       setTimeRemaining(quizConfig.duration * 60);
     }
-    if (quizConfig.timerPerQuestion) {
-      setQuestionTimeRemaining(timePerQuestion);
+    if (quizConfig.timerPerQuestion && quizData) {
+      const initialTimers: Record<number, number> = {};
+      quizData.questions.forEach((_, index) => {
+        initialTimers[index] = timePerQuestion;
+      });
+      setQuestionTimers(initialTimers);
     }
   };
   
@@ -250,19 +278,65 @@ const QuizPage: React.FC = () => {
     toast.info("Selection cleared");
   };
   
+  const goToQuestionIndex = (index: number) => {
+    if (index < 0 || !quizData || index >= quizData.questions.length) return;
+    
+    // Don't allow navigating to locked questions
+    if (lockedQuestions.includes(index)) {
+      toast.error("This question is locked because time ran out");
+      return;
+    }
+    
+    setActiveQuestionIndex(index);
+  };
+  
+  const goToNextAvailableQuestion = useCallback(() => {
+    if (!quizData) return;
+    
+    let nextIndex = activeQuestionIndex + 1;
+    
+    // Find the next unlocked question
+    while (nextIndex < quizData.questions.length && lockedQuestions.includes(nextIndex)) {
+      nextIndex++;
+    }
+    
+    if (nextIndex < quizData.questions.length) {
+      setActiveQuestionIndex(nextIndex);
+    } else {
+      // If no unlocked questions remain, find a previous one that's not locked
+      nextIndex = activeQuestionIndex - 1;
+      while (nextIndex >= 0 && lockedQuestions.includes(nextIndex)) {
+        nextIndex--;
+      }
+      
+      if (nextIndex >= 0) {
+        setActiveQuestionIndex(nextIndex);
+      } else {
+        // All questions are locked, end the quiz
+        endQuiz();
+      }
+    }
+  }, [activeQuestionIndex, quizData, lockedQuestions, endQuiz]);
+  
   const goToNextQuestion = useCallback(() => {
     if (!quizData) return;
     
     if (activeQuestionIndex < quizData.questions.length - 1) {
-      setActiveQuestionIndex(prevIndex => prevIndex + 1);
+      goToQuestionIndex(activeQuestionIndex + 1);
     } else {
       endQuiz();
     }
   }, [activeQuestionIndex, quizData, endQuiz]);
   
   const goToPreviousQuestion = () => {
+    if (quizConfig.timerPerQuestion) {
+      // Prevent going back in timer-per-question mode
+      toast.error("Cannot navigate back when timer per question is enabled");
+      return;
+    }
+    
     if (activeQuestionIndex > 0) {
-      setActiveQuestionIndex(prevIndex => prevIndex - 1);
+      goToQuestionIndex(activeQuestionIndex - 1);
     }
   };
   
@@ -297,6 +371,7 @@ const QuizPage: React.FC = () => {
   const currentQuestion = quizData.questions[activeQuestionIndex];
   const isMultipleCorrect = currentQuestion.type === 'multiple-correct';
   const userAnswers = selectedAnswers[activeQuestionIndex] || [];
+  const currentQuestionRemainingTime = questionTimers[activeQuestionIndex] || timePerQuestion;
   
   if (!quizStarted) {
     return (
@@ -332,7 +407,8 @@ const QuizPage: React.FC = () => {
                     <li>Read each question carefully before answering.</li>
                     <li>{isMultipleCorrect ? 'Some questions may have multiple correct answers.' : 'Each question has exactly one correct answer.'}</li>
                     <li>You can clear your selection for any question.</li>
-                    <li>You can navigate between questions using the next and previous buttons.</li>
+                    <li>You can navigate between questions using the question number buttons.</li>
+                    {quizConfig.timerPerQuestion && <li>Each question has its own timer. If time runs out for a question, it will be locked and you cannot return to it.</li>}
                     {quizConfig.timeMode === 'timed' && <li>The quiz will automatically end when the time is up.</li>}
                     
                     {quizConfig.negativeMarking && (
@@ -387,7 +463,7 @@ const QuizPage: React.FC = () => {
               {quizConfig.timerPerQuestion && (
                 <div className="flex items-center gap-1 text-rose-600">
                   <Timer className="h-4 w-4" />
-                  <span>{formatTime(questionTimeRemaining)}</span>
+                  <span>{formatTime(currentQuestionRemainingTime)}</span>
                 </div>
               )}
             </div>
@@ -396,6 +472,32 @@ const QuizPage: React.FC = () => {
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Question Navigation */}
+          <div className="flex flex-wrap gap-2 justify-center mb-4">
+            {quizData.questions.map((_, index) => {
+              const isActive = index === activeQuestionIndex;
+              const isAnswered = (selectedAnswers[index] || []).length > 0;
+              const isLocked = lockedQuestions.includes(index);
+              
+              return (
+                <Button
+                  key={index}
+                  size="sm"
+                  variant={isActive ? "default" : isAnswered ? "outline" : "secondary"}
+                  className={`w-10 h-10 p-0 ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  onClick={() => goToQuestionIndex(index)}
+                  disabled={isLocked}
+                >
+                  {isLocked ? (
+                    <Lock className="h-3 w-3" />
+                  ) : (
+                    index + 1
+                  )}
+                </Button>
+              );
+            })}
+          </div>
+          
           <div className="text-lg font-medium">{currentQuestion.question}</div>
           
           {isMultipleCorrect ? (
@@ -457,7 +559,7 @@ const QuizPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={goToPreviousQuestion}
-              disabled={activeQuestionIndex === 0}
+              disabled={activeQuestionIndex === 0 || quizConfig.timerPerQuestion}
             >
               <ArrowLeft className="mr-1 h-4 w-4" /> Previous
             </Button>
