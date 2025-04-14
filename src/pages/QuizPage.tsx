@@ -10,7 +10,9 @@ import {
   ArrowLeft,
   Timer,
   CheckSquare,
-  Square 
+  Square,
+  MinusCircle,
+  HelpCircle 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +29,7 @@ interface QuizConfig {
   duration: number; // in minutes
   questionCount: number;
   timerPerQuestion: boolean;
+  negativeMarking: boolean;
 }
 
 const QuizPage: React.FC = () => {
@@ -39,7 +42,8 @@ const QuizPage: React.FC = () => {
     timeMode: 'timed',
     duration: 10,
     questionCount: 10,
-    timerPerQuestion: false
+    timerPerQuestion: false,
+    negativeMarking: false
   };
   
   const quizConfig: QuizConfig = location.state?.quizConfig || defaultConfig;
@@ -53,6 +57,12 @@ const QuizPage: React.FC = () => {
   const [questionTimeRemaining, setQuestionTimeRemaining] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [questionResults, setQuestionResults] = useState<Record<number, {
+    attempted: boolean;
+    isCorrect: boolean;
+    partiallyCorrect?: boolean;
+    score: number;
+  }>>({});
   
   const timePerQuestion = quizConfig.timerPerQuestion 
     ? Math.floor((quizConfig.duration * 60) / quizConfig.questionCount) 
@@ -67,8 +77,8 @@ const QuizPage: React.FC = () => {
           
           // Initialize empty answer slots for each question
           const initialAnswers: Record<string, number[]> = {};
-          quiz.questions.forEach(q => {
-            initialAnswers[q.id] = [];
+          quiz.questions.forEach((q, index) => {
+            initialAnswers[index] = [];
           });
           setSelectedAnswers(initialAnswers);
           
@@ -128,37 +138,99 @@ const QuizPage: React.FC = () => {
     }
   };
   
+  const calculateQuestionScore = (question: QuizQuestion, userAnswers: number[]): { score: number, isCorrect: boolean, partiallyCorrect?: boolean } => {
+    if (userAnswers.length === 0) {
+      // Skipped question
+      return { score: 0, isCorrect: false };
+    }
+    
+    if (question.type === 'mcq' || question.type === 'true-false') {
+      const isCorrect = userAnswers.length === 1 && userAnswers[0] === question.correctAnswers[0];
+      
+      if (isCorrect) {
+        return { score: 4, isCorrect: true };
+      } else if (quizConfig.negativeMarking) {
+        return { score: -1, isCorrect: false };
+      } else {
+        return { score: 0, isCorrect: false };
+      }
+    } else if (question.type === 'multiple-correct') {
+      // For multiple-correct questions
+      const correctAnswersSelected = userAnswers.filter(answer => 
+        question.correctAnswers.includes(answer)
+      ).length;
+      
+      const incorrectAnswersSelected = userAnswers.filter(answer => 
+        !question.correctAnswers.includes(answer)
+      ).length;
+      
+      // All correct answers selected and no incorrect ones
+      const allCorrect = correctAnswersSelected === question.correctAnswers.length && incorrectAnswersSelected === 0;
+      
+      // Some correct answers but not all, and no incorrect ones
+      const partiallyCorrect = correctAnswersSelected > 0 && correctAnswersSelected < question.correctAnswers.length && incorrectAnswersSelected === 0;
+      
+      // Any incorrect answers selected
+      const anyIncorrect = incorrectAnswersSelected > 0;
+      
+      if (allCorrect) {
+        return { score: 4, isCorrect: true };
+      } else if (partiallyCorrect) {
+        return { 
+          score: correctAnswersSelected, 
+          isCorrect: false,
+          partiallyCorrect: true
+        };
+      } else if (anyIncorrect && quizConfig.negativeMarking) {
+        return { score: -2, isCorrect: false };
+      } else {
+        return { score: 0, isCorrect: false };
+      }
+    }
+    
+    return { score: 0, isCorrect: false };
+  };
+  
   const endQuiz = useCallback(() => {
     setQuizEnded(true);
     
     if (!quizData) return;
     
-    let correctAnswers = 0;
+    let totalScore = 0;
+    const results: Record<number, {
+      attempted: boolean;
+      isCorrect: boolean;
+      partiallyCorrect?: boolean;
+      score: number;
+    }> = {};
     
     quizData.questions.forEach((question, index) => {
       const userAnswers = selectedAnswers[index] || [];
+      const attempted = userAnswers.length > 0;
+      const result = calculateQuestionScore(question, userAnswers);
       
-      if (question.type === 'mcq' || question.type === 'true-false') {
-        if (userAnswers.length === 1 && userAnswers[0] === question.correctAnswers[0]) {
-          correctAnswers++;
-        }
-      } else if (question.type === 'multiple-correct') {
-        const isCorrect = 
-          userAnswers.length === question.correctAnswers.length && 
-          userAnswers.every(answer => question.correctAnswers.includes(answer)) &&
-          question.correctAnswers.every(answer => userAnswers.includes(answer));
-        
-        if (isCorrect) {
-          correctAnswers++;
-        }
-      }
+      results[index] = {
+        attempted,
+        isCorrect: result.isCorrect,
+        partiallyCorrect: result.partiallyCorrect,
+        score: result.score
+      };
+      
+      totalScore += result.score;
     });
     
-    const finalScore = Math.round((correctAnswers / quizData.questions.length) * 100);
-    setScore(finalScore);
+    // Ensure totalScore is not negative
+    totalScore = Math.max(0, totalScore);
     
-    toast.success(`Quiz completed! Your score: ${finalScore}%`);
-  }, [quizData, selectedAnswers]);
+    // Calculate percentage (max possible score is 4 points per question)
+    const maxPossibleScore = quizData.questions.length * 4;
+    const scorePercentage = Math.round((totalScore / maxPossibleScore) * 100);
+    
+    setScore(scorePercentage);
+    setQuestionResults(results);
+    
+    toast.success(`Quiz completed! Your score: ${scorePercentage}%`);
+  }, [quizData, selectedAnswers, quizConfig.negativeMarking]);
   
   const handleAnswerSelect = (questionIndex: number, optionIndex: number, multiple: boolean = false) => {
     setSelectedAnswers(prev => {
@@ -258,8 +330,15 @@ const QuizPage: React.FC = () => {
                 <p className="text-center">Each question has a time limit of {formatTime(timePerQuestion)} seconds.</p>
               )}
               
-              <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800 flex items-center justify-center">
-                <div className="flex flex-col items-center max-w-md">
+              {quizConfig.negativeMarking && (
+                <div className="flex items-center justify-center gap-2 text-center text-rose-600 font-medium mb-2">
+                  <MinusCircle className="h-4 w-4" />
+                  <span>Negative marking is enabled</span>
+                </div>
+              )}
+              
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800">
+                <div className="flex flex-col items-center">
                   <h4 className="font-semibold text-center">Quiz Instructions</h4>
                   <ul className="list-disc list-inside mt-2 space-y-1 text-center">
                     <li>Read each question carefully before answering.</li>
@@ -267,6 +346,16 @@ const QuizPage: React.FC = () => {
                     <li>You can clear your selection for any question.</li>
                     <li>You can navigate between questions using the next and previous buttons.</li>
                     {quizConfig.timeMode === 'timed' && <li>The quiz will automatically end when the time is up.</li>}
+                    
+                    {quizConfig.negativeMarking && (
+                      <>
+                        <li className="font-medium text-rose-700">Negative marking is enabled:</li>
+                        <ul className="list-disc list-inside ml-4 text-sm">
+                          <li>MCQ/True-False: +4 points for correct, -1 for incorrect</li>
+                          <li>Multiple-correct: +1 per correct choice, +4 for all correct, -2 if any wrong option selected</li>
+                        </ul>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -286,6 +375,8 @@ const QuizPage: React.FC = () => {
       selectedAnswers={selectedAnswers}
       score={score}
       onReturnToTopic={() => navigate(`/topic/${topic}`)}
+      questionResults={questionResults}
+      negativeMarking={quizConfig.negativeMarking}
     />;
   }
   
@@ -420,13 +511,22 @@ interface QuizResultsProps {
   selectedAnswers: Record<string, number[]>;
   score: number;
   onReturnToTopic: () => void;
+  questionResults: Record<number, {
+    attempted: boolean;
+    isCorrect: boolean;
+    partiallyCorrect?: boolean;
+    score: number;
+  }>;
+  negativeMarking: boolean;
 }
 
 const QuizResults: React.FC<QuizResultsProps> = ({ 
   quizData, 
   selectedAnswers, 
   score,
-  onReturnToTopic
+  onReturnToTopic,
+  questionResults,
+  negativeMarking
 }) => {
   const [showExplanations, setShowExplanations] = useState<boolean>(true);
   
@@ -472,26 +572,38 @@ const QuizResults: React.FC<QuizResultsProps> = ({
           <div className="space-y-8">
             {quizData.questions.map((question, idx) => {
               const userAnswers = selectedAnswers[idx] || [];
-              const isCorrect = question.type === 'multiple-correct' 
-                ? userAnswers.length === question.correctAnswers.length && 
-                  userAnswers.every(a => question.correctAnswers.includes(a)) &&
-                  question.correctAnswers.every(a => userAnswers.includes(a))
-                : userAnswers.length === 1 && userAnswers[0] === question.correctAnswers[0];
+              const result = questionResults[idx] || { attempted: false, isCorrect: false, score: 0 };
+              const isSkipped = !result.attempted;
               
               return (
                 <div 
                   key={idx} 
-                  className={`p-4 rounded-lg border ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
+                  className={`p-4 rounded-lg border ${result.isCorrect 
+                    ? 'border-green-200 bg-green-50' 
+                    : result.partiallyCorrect 
+                      ? 'border-amber-200 bg-amber-50'
+                      : isSkipped
+                        ? 'border-slate-200 bg-slate-50'
+                        : 'border-red-200 bg-red-50'}`}
                 >
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium">Question {idx + 1}</h4>
-                    {isCorrect ? (
+                    {result.isCorrect ? (
                       <span className="flex items-center text-green-600 text-sm font-medium">
-                        <Check className="h-4 w-4 mr-1" /> Correct
+                        <Check className="h-4 w-4 mr-1" /> Correct (+{result.score})
+                      </span>
+                    ) : isSkipped ? (
+                      <span className="flex items-center text-slate-600 text-sm font-medium">
+                        <HelpCircle className="h-4 w-4 mr-1" /> Not Attempted
+                      </span>
+                    ) : result.partiallyCorrect ? (
+                      <span className="flex items-center text-amber-600 text-sm font-medium">
+                        <AlertCircle className="h-4 w-4 mr-1" /> Partially Correct (+{result.score})
                       </span>
                     ) : (
                       <span className="flex items-center text-red-600 text-sm font-medium">
-                        <X className="h-4 w-4 mr-1" /> Incorrect
+                        <X className="h-4 w-4 mr-1" /> 
+                        Incorrect {result.score < 0 ? `(${result.score})` : ''}
                       </span>
                     )}
                   </div>

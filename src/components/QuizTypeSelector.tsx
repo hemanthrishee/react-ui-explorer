@@ -11,10 +11,12 @@ import {
   Clock,
   InfinityIcon,
   Timer,
-  Hash
+  Hash,
+  MinusCircle
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 
 interface QuizTypeSelectorProps {
   onClose: () => void;
@@ -27,6 +29,7 @@ export interface QuizConfig {
   duration: number; // in minutes
   questionCount: number;
   timerPerQuestion: boolean;
+  negativeMarking: boolean; // New field for negative marking
 }
 
 type QuizType = 'mcq' | 'true-false' | 'multiple-correct';
@@ -39,6 +42,7 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
   const [duration, setDuration] = useState<number>(10); // Default 10 minutes
   const [questionCount, setQuestionCount] = useState<number>(10); // Default 10 questions
   const [timerPerQuestion, setTimerPerQuestion] = useState<boolean>(false);
+  const [negativeMarking, setNegativeMarking] = useState<boolean>(false); // Default no negative marking
 
   const handleNextStep = () => {
     if (step === 'quiz-type') {
@@ -67,7 +71,8 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
       timeMode,
       duration,
       questionCount,
-      timerPerQuestion
+      timerPerQuestion,
+      negativeMarking // Include negative marking in the config
     };
     
     if (onSubmit) {
@@ -84,7 +89,9 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
           : `${duration} Minute${duration !== 1 ? 's' : ''} total`;
       }
       
-      toast.success(`Generating ${quizTypeName} quiz with ${questionCount} questions - ${timeConfig}`);
+      const markingInfo = negativeMarking ? ' with negative marking' : '';
+      
+      toast.success(`Generating ${quizTypeName} quiz${markingInfo} with ${questionCount} questions - ${timeConfig}`);
       onClose();
     }
   };
@@ -189,6 +196,31 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
                   <span className="text-sm text-muted-foreground">questions</span>
                 </div>
               </div>
+            </div>
+            
+            <div className="border p-4 rounded-md">
+              <div className="flex items-center space-x-3">
+                <div className="flex-1">
+                  <div className="flex items-center">
+                    <Label htmlFor="negative-marking" className="font-medium text-base cursor-pointer">Enable Negative Marking</Label>
+                    <MinusCircle className="ml-2 h-4 w-4 text-red-500" />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Deduct points for incorrect answers
+                  </p>
+                </div>
+                <Switch
+                  id="negative-marking"
+                  checked={negativeMarking}
+                  onCheckedChange={setNegativeMarking}
+                />
+              </div>
+              {negativeMarking && (
+                <div className="mt-3 text-xs text-muted-foreground border-t pt-2">
+                  <p className="mb-1">• MCQ/True-False: +4 points for correct, -1 for incorrect</p>
+                  <p>• Multiple-correct: +1 point per correct choice, +4 for all correct choices, -2 if any wrong option selected</p>
+                </div>
+              )}
             </div>
             
             <RadioGroup
