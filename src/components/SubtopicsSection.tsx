@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { Clock, AlertCircle, ExternalLink } from 'lucide-react';
+import { Clock, AlertCircle, ExternalLink, BookCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface SubTopic {
@@ -36,6 +36,7 @@ interface SubTopicsSectionProps {
 }
 
 const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicName }) => {
+  const [showQuizDialog, setShowQuizDialog] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<SubTopic | null>(null);
   
   const getDifficultyColor = (difficulty: string) => {
@@ -133,6 +134,12 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
                           <Button className="w-full bg-react-primary text-react-secondary hover:bg-react-primary/90">
                             <ExternalLink className="h-4 w-4 mr-2" />
                             Generate Resources
+                          </Button>
+                        </div>
+                        <div className="pt-2">
+                          <Button className="w-full bg-react-dark text-react-light hover:bg-react-dark/90">
+                            <BookCheck className="h-4 w-4 mr-2" />
+                            Generate Quiz
                           </Button>
                         </div>
                       </div>

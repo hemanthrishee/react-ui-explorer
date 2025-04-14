@@ -84,7 +84,7 @@ const QuizPage: React.FC = () => {
           setSelectedAnswers(initialAnswers);
           
         }).catch(error => {
-          console.error("Failed to fetch quiz data:", error);
+          toast.error(error.message || 'Failed to load quiz data');
         });
       }
     }, [topic, quizConfig]);

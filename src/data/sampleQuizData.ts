@@ -176,9 +176,6 @@ export const getQuizByTopic = async (topic: string, question_type: string, num_q
     
     return {topic: lowerCaseTopic, questions: data.quiz.quiz}
   } catch (err) {
-    console.error("Error fetching topic data:", err);
+    return {"topic": "error", "questions": []};
   }
-  
-  // Default to Python quiz if topic not found
-  return pythonQuiz;
 };
