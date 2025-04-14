@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -185,6 +186,12 @@ const QuizPage: React.FC = () => {
     }
   }, [activeQuestionIndex, quizData, endQuiz]);
   
+  const goToPreviousQuestion = () => {
+    if (activeQuestionIndex > 0) {
+      setActiveQuestionIndex(prevIndex => prevIndex - 1);
+    }
+  };
+  
   const handleSubmitQuiz = () => {
     setIsSubmitting(true);
     setTimeout(() => {
@@ -238,18 +245,15 @@ const QuizPage: React.FC = () => {
               )}
               
               <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800 flex items-center justify-center">
-                <div className="flex items-start gap-3 max-w-md">
-                  <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-center">Quiz Instructions</h4>
-                    <ul className="list-disc list-inside mt-2 space-y-1 text-left">
-                      <li>Read each question carefully before answering.</li>
-                      <li>{isMultipleCorrect ? 'Some questions may have multiple correct answers.' : 'Each question has exactly one correct answer.'}</li>
-                      <li>You can clear your selection for any question.</li>
-                      <li>You can navigate between questions using the next and previous buttons.</li>
-                      {quizConfig.timeMode === 'timed' && <li>The quiz will automatically end when the time is up.</li>}
-                    </ul>
-                  </div>
+                <div className="flex flex-col items-center max-w-md">
+                  <h4 className="font-semibold text-center">Quiz Instructions</h4>
+                  <ul className="list-disc list-inside mt-2 space-y-1 text-center">
+                    <li>Read each question carefully before answering.</li>
+                    <li>{isMultipleCorrect ? 'Some questions may have multiple correct answers.' : 'Each question has exactly one correct answer.'}</li>
+                    <li>You can clear your selection for any question.</li>
+                    <li>You can navigate between questions using the next and previous buttons.</li>
+                    {quizConfig.timeMode === 'timed' && <li>The quiz will automatically end when the time is up.</li>}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -356,6 +360,15 @@ const QuizPage: React.FC = () => {
         </CardContent>
         
         <CardFooter className="flex justify-between">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={goToPreviousQuestion}
+              disabled={activeQuestionIndex === 0}
+            >
+              <ArrowLeft className="mr-1 h-4 w-4" /> Previous
+            </Button>
+          </div>
           <div className="flex gap-2">
             {activeQuestionIndex === quizData.questions.length - 1 && (
               <Button 
