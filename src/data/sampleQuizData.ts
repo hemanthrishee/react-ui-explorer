@@ -151,7 +151,7 @@ export const reactQuiz: QuizData = {
 };
 
 // Get quiz data based on topic
-export const getQuizByTopic = async (topic: string, question_type: string, num_questions: number): Promise<QuizData> => {
+export const getQuizByTopic = async (topic: string, question_type: string, num_questions: number, subTopic: string): Promise<QuizData> => {
   const lowerCaseTopic = topic.toLowerCase();
   
   try {
@@ -164,7 +164,8 @@ export const getQuizByTopic = async (topic: string, question_type: string, num_q
       body: JSON.stringify({
         topic: lowerCaseTopic,
         num_questions: num_questions,
-        question_type: question_type
+        question_type: question_type,
+        subtopic: subTopic,
       }),
     });
     
@@ -176,6 +177,6 @@ export const getQuizByTopic = async (topic: string, question_type: string, num_q
     
     return {topic: lowerCaseTopic, questions: data.quiz.quiz}
   } catch (err) {
-    return {"topic": "error", "questions": []};
+    throw new Error(`Failed to fetch quiz data: ${err.message}`);
   }
 };

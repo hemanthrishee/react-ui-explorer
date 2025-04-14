@@ -48,6 +48,7 @@ const QuizPage: React.FC = () => {
   };
   
   const quizConfig: QuizConfig = location.state?.quizConfig || defaultConfig;
+  const subTopic: string = location.state?.subTopic || '';
   
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
@@ -72,7 +73,7 @@ const QuizPage: React.FC = () => {
   
   useEffect(() => {
       if (topic) {
-        getQuizByTopic(topic, quizConfig.quizType, quizConfig.questionCount).then(quiz => {
+        getQuizByTopic(topic, quizConfig.quizType, quizConfig.questionCount, subTopic).then(quiz => {
           setQuizData({
             ...quiz,
           });
@@ -85,6 +86,7 @@ const QuizPage: React.FC = () => {
           
         }).catch(error => {
           toast.error(error.message || 'Failed to load quiz data');
+          navigate(`/topic/${topic}`)
         });
       }
     }, [topic, quizConfig]);
@@ -378,7 +380,10 @@ const QuizPage: React.FC = () => {
       <div className="container mx-auto max-w-4xl py-8 px-4 flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-lg shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">{quizData.topic} Quiz</CardTitle>
+            <CardTitle className="text-2xl">
+              {quizData.topic} Quiz
+              {subTopic && <span className="text-sm text-muted-foreground"> - {subTopic}</span>}
+            </CardTitle>
             <CardDescription>
               {quizConfig.quizType === 'mcq' ? 'Multiple Choice Questions' : 
                 quizConfig.quizType === 'true-false' ? 'True/False Questions' : 

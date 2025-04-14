@@ -20,6 +20,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Clock, AlertCircle, ExternalLink, BookCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import QuizTypeSelector from './QuizTypeSelector';
+import { useNavigate } from 'react-router-dom';
 
 interface SubTopic {
   name: string;
@@ -38,6 +40,7 @@ interface SubTopicsSectionProps {
 const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicName }) => {
   const [showQuizDialog, setShowQuizDialog] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<SubTopic | null>(null);
+  const navigate = useNavigate();
   
   const getDifficultyColor = (difficulty: string) => {
     switch(difficulty.toLowerCase()) {
@@ -52,6 +55,23 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
     setSelectedTopic(topic);
   };
   
+  const handleGenerateQuiz = () => {
+    setShowQuizDialog(true);
+  };
+
+  const handleQuizConfigSubmit = (quizConfig: any, subTopic: string) => {
+    setShowQuizDialog(false);
+    
+    // Extract the topic from the URL
+    const topicMatch = location.pathname.match(/\/topic\/(.+)/);
+    if (topicMatch && topicMatch[1]) {
+      const topic = decodeURIComponent(topicMatch[1]);
+      
+      // Navigate to the quiz page with the quiz configuration
+      navigate(`/quiz/${topic}`, { state: { quizConfig, subTopic } });
+    }
+  };
+
   return (
     <section id="subtopics" className="py-16">
       <div className="container mx-auto px-4">
@@ -137,11 +157,25 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
                           </Button>
                         </div>
                         <div className="pt-2">
-                          <Button className="w-full bg-react-dark text-react-light hover:bg-react-dark/90">
+                          <Button 
+                            className="w-full bg-react-dark text-react-light hover:bg-react-dark/90"
+                            onClick={() => handleGenerateQuiz()} 
+                            >
                             <BookCheck className="h-4 w-4 mr-2" />
                             Generate Quiz
                           </Button>
                         </div>
+                        <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Quiz Configuration</DialogTitle>
+                              <DialogDescription>
+                                Customize your quiz settings
+                              </DialogDescription>
+                            </DialogHeader>
+                            <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={(quizConfig)=>handleQuizConfigSubmit(quizConfig, selectedTopic.name)} />
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </DialogContent>
                   )}
