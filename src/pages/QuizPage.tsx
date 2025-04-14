@@ -488,7 +488,7 @@ const QuizPage: React.FC = () => {
                 <Button
                   key={index}
                   size="sm"
-                  variant={isActive ? "default" : isAnswered ? "outline" : "secondary"}
+                  variant={isActive ? "default" : isAnswered ? "success" : "secondary"}
                   className={`w-10 h-10 p-0 ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                   onClick={() => goToQuestionIndex(index)}
                   disabled={isLocked}
