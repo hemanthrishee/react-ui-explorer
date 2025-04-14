@@ -46,7 +46,7 @@ const QuizPage: React.FC = () => {
   
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number[]>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number[]>>({});
   const [quizStarted, setQuizStarted] = useState<boolean>(false);
   const [quizEnded, setQuizEnded] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(quizConfig.duration * 60); // in seconds
@@ -135,8 +135,8 @@ const QuizPage: React.FC = () => {
     
     let correctAnswers = 0;
     
-    quizData.questions.forEach(question => {
-      const userAnswers = selectedAnswers[question.id] || [];
+    quizData.questions.forEach((question, index) => {
+      const userAnswers = selectedAnswers[index] || [];
       
       if (question.type === 'mcq' || question.type === 'true-false') {
         if (userAnswers.length === 1 && userAnswers[0] === question.correctAnswers[0]) {
@@ -160,9 +160,9 @@ const QuizPage: React.FC = () => {
     toast.success(`Quiz completed! Your score: ${finalScore}%`);
   }, [quizData, selectedAnswers]);
   
-  const handleAnswerSelect = (questionId: string, optionIndex: number, multiple: boolean = false) => {
+  const handleAnswerSelect = (questionIndex: number, optionIndex: number, multiple: boolean = false) => {
     setSelectedAnswers(prev => {
-      const current = prev[questionId] || [];
+      const current = prev[questionIndex] || [];
       let newAnswers;
       
       if (multiple) {
@@ -178,14 +178,14 @@ const QuizPage: React.FC = () => {
       }
       
       // Create a new object to ensure state updates
-      return { ...prev, [questionId]: newAnswers };
+      return { ...prev, [questionIndex]: newAnswers };
     });
   };
   
-  const clearAnswers = (questionId: string) => {
+  const clearAnswers = (questionIndex: number) => {
     setSelectedAnswers(prev => ({
       ...prev,
-      [questionId]: []
+      [questionIndex]: []
     }));
     toast.info("Selection cleared");
   };
@@ -236,7 +236,7 @@ const QuizPage: React.FC = () => {
   
   const currentQuestion = quizData.questions[activeQuestionIndex];
   const isMultipleCorrect = currentQuestion.type === 'multiple-correct';
-  const userAnswers = selectedAnswers[currentQuestion.id] || [];
+  const userAnswers = selectedAnswers[activeQuestionIndex] || [];
   
   if (!quizStarted) {
     return (
@@ -326,7 +326,7 @@ const QuizPage: React.FC = () => {
                   <Checkbox 
                     id={`option-${idx}`}
                     checked={userAnswers.includes(idx)}
-                    onCheckedChange={() => handleAnswerSelect(currentQuestion.id, idx, true)}
+                    onCheckedChange={() => handleAnswerSelect(activeQuestionIndex, idx, true)}
                   />
                   <Label 
                     htmlFor={`option-${idx}`}
@@ -348,7 +348,7 @@ const QuizPage: React.FC = () => {
                     value={idx.toString()} 
                     id={`option-${idx}`} 
                     checked={userAnswers.includes(idx)}
-                    onClick={() => handleAnswerSelect(currentQuestion.id, idx)}
+                    onClick={() => handleAnswerSelect(activeQuestionIndex, idx)}
                   />
                   <Label 
                     htmlFor={`option-${idx}`}
@@ -365,7 +365,7 @@ const QuizPage: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => clearAnswers(currentQuestion.id)}
+              onClick={() => clearAnswers(activeQuestionIndex)}
               disabled={userAnswers.length === 0}
             >
               <X className="mr-1 h-3 w-3" /> Clear Selection
@@ -471,7 +471,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
           
           <div className="space-y-8">
             {quizData.questions.map((question, idx) => {
-              const userAnswers = selectedAnswers[question.id] || [];
+              const userAnswers = selectedAnswers[idx] || [];
               const isCorrect = question.type === 'multiple-correct' 
                 ? userAnswers.length === question.correctAnswers.length && 
                   userAnswers.every(a => question.correctAnswers.includes(a)) &&
@@ -480,7 +480,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               
               return (
                 <div 
-                  key={question.id} 
+                  key={idx} 
                   className={`p-4 rounded-lg border ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
                 >
                   <div className="flex justify-between items-start">
@@ -516,7 +516,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                       }
                       
                       return (
-                        <div key={`${question.id}-option-${optIdx}`} className={className}>
+                        <div key={`${idx}-option-${optIdx}`} className={className}>
                           <div className="flex items-start gap-2">
                             {question.type === 'multiple-correct' ? (
                               isCorrectOption ? (
