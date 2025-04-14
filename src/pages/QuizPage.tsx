@@ -22,7 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { getQuizByTopic, type QuizQuestion, type QuizData } from '@/data/sampleQuizData';
+import { getQuizByTopic, type QuizQuestion, type QuizData } from '@/data/getQuizData';
 
 interface QuizConfig {
   quizType: 'mcq' | 'true-false' | 'multiple-correct';
