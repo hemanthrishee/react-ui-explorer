@@ -64,6 +64,14 @@ const QuizPage: React.FC = () => {
           setQuizData({
             ...quiz,
           });
+          
+          // Initialize empty answer slots for each question
+          const initialAnswers: Record<string, number[]> = {};
+          quiz.questions.forEach(q => {
+            initialAnswers[q.id] = [];
+          });
+          setSelectedAnswers(initialAnswers);
+          
         }).catch(error => {
           console.error("Failed to fetch quiz data:", error);
         });
@@ -155,16 +163,22 @@ const QuizPage: React.FC = () => {
   const handleAnswerSelect = (questionId: string, optionIndex: number, multiple: boolean = false) => {
     setSelectedAnswers(prev => {
       const current = prev[questionId] || [];
+      let newAnswers;
       
       if (multiple) {
+        // For multiple-correct questions
         if (current.includes(optionIndex)) {
-          return { ...prev, [questionId]: current.filter(idx => idx !== optionIndex) };
+          newAnswers = current.filter(idx => idx !== optionIndex);
         } else {
-          return { ...prev, [questionId]: [...current, optionIndex] };
+          newAnswers = [...current, optionIndex];
         }
       } else {
-        return { ...prev, [questionId]: [optionIndex] };
+        // For single-answer questions
+        newAnswers = [optionIndex];
       }
+      
+      // Create a new object to ensure state updates
+      return { ...prev, [questionId]: newAnswers };
     });
   };
   
@@ -502,7 +516,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                       }
                       
                       return (
-                        <div key={optIdx} className={className}>
+                        <div key={`${question.id}-option-${optIdx}`} className={className}>
                           <div className="flex items-start gap-2">
                             {question.type === 'multiple-correct' ? (
                               isCorrectOption ? (
