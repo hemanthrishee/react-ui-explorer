@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { reactData } from '@/data/reactData';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Code, FileCode, PenTool, Database, Cpu, Braces, Terminal } from 'lucide-react';
@@ -68,14 +67,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({ shortDescription, topicName }
             </h1>
             <div className="prose prose-invert max-w-none">
               <ReactMarkdown>{shortDescription}</ReactMarkdown>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Button className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
-                Get Started
-              </Button>
-              <Button variant="outline" className="border-react-primary text-react-primary hover:bg-react-primary/10">
-                View Resources
-              </Button>
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
