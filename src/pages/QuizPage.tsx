@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Clock, 
@@ -66,6 +66,19 @@ const QuizPage: React.FC = () => {
     partiallyCorrect?: boolean;
     score: number;
   }>>({});
+
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    const activeButton = buttonRefs.current[activeQuestionIndex];
+    if (activeButton) {
+      activeButton.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [activeQuestionIndex]);
   
   const timePerQuestion = quizConfig.timerPerQuestion 
     ? Math.floor((quizConfig.duration * 60) / quizConfig.questionCount) 
@@ -469,7 +482,7 @@ const QuizPage: React.FC = () => {
         </CardHeader>
         
         <CardContent className="space-y-6">
-          <ScrollArea className="w-full h-16" orientation="horizontal">
+          <ScrollArea className="w-full h-16 overflow-x-auto whitespace-nowrap">
             <div className="flex p-4 gap-2 min-w-full">
               {quizData.questions.map((_, index) => {
                 const isActive = index === activeQuestionIndex;
@@ -480,6 +493,7 @@ const QuizPage: React.FC = () => {
                   <Button
                     key={index}
                     size="sm"
+                    ref={(el) => (buttonRefs.current[index] = el)}
                     variant={isActive ? "default" : isAnswered ? "success" : "secondary"}
                     className={`w-10 h-10 flex-shrink-0 ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                     onClick={() => goToQuestionIndex(index)}
