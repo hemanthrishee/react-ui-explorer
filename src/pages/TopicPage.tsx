@@ -63,12 +63,12 @@ interface TopicData {
 }
 
 const TopicPage = () => {
-  const [topicName, setTopicName] = useState(useParams().topic || '');
+  const [topicName, setTopicName] = useState<string>(useParams().topic || '');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [topicData, setTopicData] = useState<TopicData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const formattedTopicName = topicName ? topicName.charAt(0).toUpperCase() + topicName.slice(1) : '';
+  const [formattedTopicName, setFormattedTopicName] = useState<string>(topicName ? topicName.charAt(0).toUpperCase() + topicName.slice(1) : '');
 
   useEffect(() => {
     fetchTopicData()
@@ -101,7 +101,16 @@ const TopicPage = () => {
         
         const resultData = await JSON.parse(data.result);
         setTopicData(resultData[resultData["topic"]]);
-        setTopicName(resultData["topic"])
+        setTopicName(resultData["topic"]);
+
+        const splitTopicName = resultData["topic"].toString().split('-');
+        const lastPart = splitTopicName[splitTopicName.length - 1];
+        const capitalizedLastPart = lastPart
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        setFormattedTopicName(capitalizedLastPart);  
+
         setLoading(false);
         
         window.dispatchEvent(new Event('topicContentLoaded'));
@@ -111,7 +120,7 @@ const TopicPage = () => {
         setLoading(false);
       }
     }
-  }, [topicName, formattedTopicName]);
+  }, [topicName]);
 
   const goBack = () => {
     navigate('/');
@@ -126,7 +135,7 @@ const TopicPage = () => {
 
   if (loading) {
     return (
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow flex items-center justify-center mt-4 sm:mt-8 lg:mt-12">
         <div className="text-center">
           <Loader2 className="h-16 w-16 animate-spin text-react-primary mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">Generating content...</h2>
@@ -138,7 +147,7 @@ const TopicPage = () => {
 
   if (error) {
     return (
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow flex items-center justify-center mt-4 sm:mt-8 lg:mt-12">
         <div className="text-center max-w-md mx-auto px-4">
           <h2 className="text-2xl font-semibold mb-4 text-red-500">Oops! Something went wrong</h2>
           <p className="mb-6 text-gray-600">{error}</p>
@@ -164,9 +173,6 @@ const TopicPage = () => {
       </div>
     );
   }
-
-  const topic = Object.keys(topicData)[0];
-  const data = topicData[topic];
 
   return (
     <div className="flex-grow">
@@ -254,10 +260,10 @@ const TopicPage = () => {
           </div>
         </div>
       </div>
-      <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={topicName} />
+      <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={formattedTopicName} />
       <WhyLearnSection 
           needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
-          topicName={topicName} 
+          topicName={formattedTopicName} 
           benefit1Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["heading"]?.toString() || ""}
           benefit1Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["description"]?.toString() || ""}
           benefit2Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["heading"]?.toString() || ""}
@@ -265,11 +271,11 @@ const TopicPage = () => {
           benefit3Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["heading"]?.toString() || ""}
           benefit3Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["description"]?.toString() || ""}
       />
-      <RoadmapSection topicName={topicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
-      <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={topicName} />
-      <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={topicName} />
-      <FaqSection topicName={topicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
-      <RelatedTopicsSection topicName={topicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
+      <RoadmapSection topicName={formattedTopicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
+      <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={formattedTopicName} />
+      <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={formattedTopicName} />
+      <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
+      <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
     </div>
   );
 };
