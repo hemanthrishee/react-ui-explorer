@@ -86,6 +86,11 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
   };
 
   const handleGenerateQuiz = () => {
+    if (!durationInput || parseInt(durationInput) < 1) {
+      toast.error("Please enter a valid duration (minimum 1 minute)");
+      return;
+    }
+
     // Ensure we have valid numbers
     const validQuestionCount = questionCountInput ? parseInt(questionCountInput) : 10;
     const validDuration = durationInput ? parseInt(durationInput) : 10;
