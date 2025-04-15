@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
@@ -9,7 +9,7 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
 
 interface RelatedTopicsSectionProps {
   topicName: string;
@@ -21,10 +21,20 @@ interface RelatedTopicsSectionProps {
 
 const RelatedTopicsSection: React.FC<RelatedTopicsSectionProps> = ({ topicName, relatedTopics }) => {
   const navigate = useNavigate();
+  const [loadingTopic, setLoadingTopic] = useState<string | null>(null);
 
   const handleExplore = (relatedTopic: string) => {
+    setLoadingTopic(relatedTopic);
     const searchQuery = `${topicName} - ${relatedTopic}`;
-    navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+    
+    // Clear existing content by navigating to home
+    navigate('/');
+    
+    // Then navigate to the new topic
+    setTimeout(() => {
+      navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+      setLoadingTopic(null);
+    }, 100);
   };
 
   return (
@@ -51,9 +61,14 @@ const RelatedTopicsSection: React.FC<RelatedTopicsSectionProps> = ({ topicName, 
                   variant="outline" 
                   className="w-full"
                   onClick={() => handleExplore(topic.topic)}
+                  disabled={loadingTopic === topic.topic}
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Explore Topic
+                  {loadingTopic === topic.topic ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                  )}
+                  {loadingTopic === topic.topic ? 'Loading...' : 'Explore Topic'}
                 </Button>
               </CardFooter>
             </Card>
