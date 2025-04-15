@@ -93,7 +93,6 @@ const QuizPage: React.FC = () => {
   
   useEffect(() => {
     if (quizStarted && quizConfig.timerPerQuestion && !quizEnded) {
-      // Initialize timers for all questions if they don't exist yet
       if (Object.keys(questionTimers).length === 0 && quizData) {
         const initialTimers: Record<number, number> = {};
         quizData.questions.forEach((_, index) => {
@@ -130,13 +129,11 @@ const QuizPage: React.FC = () => {
         
         if (currentQuestionTime <= 1) {
           clearInterval(questionTimerId);
-          // Lock the question that ran out of time
           if (!lockedQuestions.includes(activeQuestionIndex)) {
             setLockedQuestions(prev => [...prev, activeQuestionIndex]);
           }
           toast.error("Time's up for this question!");
           
-          // Go to the next unlocked question
           goToNextAvailableQuestion();
           
           return prevTimers;
@@ -283,7 +280,6 @@ const QuizPage: React.FC = () => {
   const goToQuestionIndex = (index: number) => {
     if (index < 0 || !quizData || index >= quizData.questions.length) return;
     
-    // Don't allow navigating to locked questions
     if (lockedQuestions.includes(index)) {
       toast.error("This question is locked because time ran out");
       return;
@@ -297,7 +293,6 @@ const QuizPage: React.FC = () => {
     
     let nextIndex = activeQuestionIndex + 1;
     
-    // Find the next unlocked question
     while (nextIndex < quizData.questions.length && lockedQuestions.includes(nextIndex)) {
       nextIndex++;
     }
@@ -305,7 +300,6 @@ const QuizPage: React.FC = () => {
     if (nextIndex < quizData.questions.length) {
       setActiveQuestionIndex(nextIndex);
     } else {
-      // If no unlocked questions remain, find a previous one that's not locked
       nextIndex = activeQuestionIndex - 1;
       while (nextIndex >= 0 && lockedQuestions.includes(nextIndex)) {
         nextIndex--;
@@ -314,7 +308,6 @@ const QuizPage: React.FC = () => {
       if (nextIndex >= 0) {
         setActiveQuestionIndex(nextIndex);
       } else {
-        // All questions are locked, end the quiz
         endQuiz();
       }
     }
@@ -332,7 +325,6 @@ const QuizPage: React.FC = () => {
   
   const goToPreviousQuestion = () => {
     if (quizConfig.timerPerQuestion) {
-      // Prevent going back in timer-per-question mode
       toast.error("Cannot navigate back when timer per question is enabled");
       return;
     }
@@ -477,9 +469,8 @@ const QuizPage: React.FC = () => {
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Question Navigation */}
-          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-            <div className="flex p-4 gap-2">
+          <ScrollArea className="w-full h-16" orientation="horizontal">
+            <div className="flex p-4 gap-2 min-w-full">
               {quizData.questions.map((_, index) => {
                 const isActive = index === activeQuestionIndex;
                 const isAnswered = (selectedAnswers[index] || []).length > 0;

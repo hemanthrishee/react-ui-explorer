@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -7,16 +8,15 @@ import {
   CheckCircle2, 
   CircleOff, 
   ListChecks, 
-  BookOpen,
   Clock,
   InfinityIcon,
   Timer,
   Hash,
   MinusCircle
 } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface QuizTypeSelectorProps {
   onClose: () => void;
@@ -43,17 +43,37 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
   const [questionCount, setQuestionCount] = useState<number>(10); // Default 10 questions
   const [timerPerQuestion, setTimerPerQuestion] = useState<boolean>(false);
   const [negativeMarking, setNegativeMarking] = useState<boolean>(false); // Default no negative marking
+  const [durationInput, setDurationInput] = useState<string>("10");
+  const [questionCountInput, setQuestionCountInput] = useState<string>("10");
+
+  // Initialize input fields with current values
+  useEffect(() => {
+    setDurationInput(duration.toString());
+    setQuestionCountInput(questionCount.toString());
+  }, [duration, questionCount]);
 
   const handleNextStep = () => {
-    if (step === 'quiz-type') {
-      setStep('questions-count');
-    } else if (step === 'questions-count') {
+    // Validate inputs before proceeding
+    if (step === 'questions-count') {
+      if (!questionCountInput || parseInt(questionCountInput) < 1) {
+        toast.error("Please enter a valid number of questions (minimum 1)");
+        return;
+      }
+      
       // Skip time selection for practice mode
       if (timeMode === 'practice') {
         handleGenerateQuiz();
       } else {
         setStep('time-selection');
       }
+    } else if (step === 'time-selection') {
+      if (!durationInput || parseInt(durationInput) < 1) {
+        toast.error("Please enter a valid duration (minimum 1 minute)");
+        return;
+      }
+      handleGenerateQuiz();
+    } else if (step === 'quiz-type') {
+      setStep('questions-count');
     }
   };
 
@@ -66,13 +86,17 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
   };
 
   const handleGenerateQuiz = () => {
+    // Ensure we have valid numbers
+    const validQuestionCount = questionCountInput ? parseInt(questionCountInput) : 10;
+    const validDuration = durationInput ? parseInt(durationInput) : 10;
+    
     const quizConfig: QuizConfig = {
       quizType: selectedType,
       timeMode,
-      duration,
-      questionCount,
+      duration: validDuration,
+      questionCount: validQuestionCount,
       timerPerQuestion,
-      negativeMarking // Include negative marking in the config
+      negativeMarking
     };
     
     if (onSubmit) {
@@ -85,13 +109,13 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
         timeConfig = 'Practice Mode (Unlimited Time)';
       } else {
         timeConfig = timerPerQuestion 
-          ? `Timer per question, ${duration} Minute${duration !== 1 ? 's' : ''} total` 
-          : `${duration} Minute${duration !== 1 ? 's' : ''} total`;
+          ? `Timer per question, ${validDuration} Minute${validDuration !== 1 ? 's' : ''} total` 
+          : `${validDuration} Minute${validDuration !== 1 ? 's' : ''} total`;
       }
       
       const markingInfo = negativeMarking ? ' with negative marking' : '';
       
-      toast.success(`Generating ${quizTypeName} quiz${markingInfo} with ${questionCount} questions - ${timeConfig}`);
+      toast.success(`Generating ${quizTypeName} quiz${markingInfo} with ${validQuestionCount} questions - ${timeConfig}`);
       onClose();
     }
   };
@@ -110,9 +134,36 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
   };
 
   const handleQuestionCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value) && value >= 1 && value <= 50) {
-      setQuestionCount(value);
+    const value = e.target.value;
+    setQuestionCountInput(value);
+
+    if (value === '') {
+      return; // Allow empty input for better UX
+    }
+
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      // Only update the actual count if it's within range
+      if (numValue >= 1 && numValue <= 50) {
+        setQuestionCount(numValue);
+      }
+    }
+  };
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDurationInput(value);
+
+    if (value === '') {
+      return; // Allow empty input for better UX
+    }
+
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      // Only update the actual duration if it's within range
+      if (numValue >= 1 && numValue <= 60) {
+        setDuration(numValue);
+      }
     }
   };
 
@@ -189,7 +240,7 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
                     type="number"
                     min="1"
                     max="50"
-                    value={questionCount}
+                    value={questionCountInput}
                     onChange={handleQuestionCountChange}
                     className="w-24"
                   />
@@ -282,13 +333,8 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
                     type="number"
                     min="1"
                     max="60"
-                    value={duration}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (!isNaN(value) && value >= 1 && value <= 60) {
-                        setDuration(value);
-                      }
-                    }}
+                    value={durationInput}
+                    onChange={handleDurationChange}
                     className="w-24"
                   />
                   <span className="text-sm text-muted-foreground">minutes (1-60)</span>
@@ -298,13 +344,15 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
             
             <div className="border p-4 rounded-md">
               <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="timer-per-question"
-                  checked={timerPerQuestion}
-                  onChange={() => setTimerPerQuestion(!timerPerQuestion)}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
+                <div className="flex items-center h-4">
+                  <input
+                    type="checkbox"
+                    id="timer-per-question"
+                    checked={timerPerQuestion}
+                    onChange={() => setTimerPerQuestion(!timerPerQuestion)}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                </div>
                 <div className="flex-1">
                   <div className="flex items-center">
                     <Label htmlFor="timer-per-question" className="font-medium text-base cursor-pointer">Timer Per Question</Label>

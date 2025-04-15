@@ -1,9 +1,30 @@
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
+    // For number inputs, we need to handle empty string case
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (type === 'number' && e.target.value === '') {
+        // Allow empty string for number inputs
+        const originalOnChange = props.onChange as React.ChangeEventHandler<HTMLInputElement> | undefined;
+        if (originalOnChange) {
+          // Create a synthetic event with empty string value
+          const syntheticEvent = {
+            ...e,
+            target: {
+              ...e.target,
+              value: ''
+            }
+          } as React.ChangeEvent<HTMLInputElement>;
+          
+          originalOnChange(syntheticEvent);
+        }
+      }
+    };
+
     return (
       <input
         type={type}
@@ -12,6 +33,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className
         )}
         ref={ref}
+        onChange={type === 'number' ? handleChange : props.onChange}
         {...props}
       />
     )
