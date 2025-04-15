@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -53,6 +52,7 @@ const Header: React.FC = () => {
     navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
     setTimeout(() => {
       setIsLoading(false);
+      setSearchQuery(''); // Clear the search input after search
     }, 1000);
   };
 

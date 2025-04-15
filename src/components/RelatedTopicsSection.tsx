@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -19,6 +20,13 @@ interface RelatedTopicsSectionProps {
 }
 
 const RelatedTopicsSection: React.FC<RelatedTopicsSectionProps> = ({ topicName, relatedTopics }) => {
+  const navigate = useNavigate();
+
+  const handleExplore = (relatedTopic: string) => {
+    const searchQuery = `${topicName} - ${relatedTopic}`;
+    navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+  };
+
   return (
     <section id="related" className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -39,7 +47,11 @@ const RelatedTopicsSection: React.FC<RelatedTopicsSectionProps> = ({ topicName, 
                 <p className="text-gray-700">{topic.description}</p>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleExplore(topic.topic)}
+                >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Explore Topic
                 </Button>
