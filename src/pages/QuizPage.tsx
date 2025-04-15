@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -23,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { getQuizByTopic, type QuizQuestion, type QuizData } from '@/data/getQuizData';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface QuizConfig {
   quizType: 'mcq' | 'true-false' | 'multiple-correct';
@@ -478,30 +478,32 @@ const QuizPage: React.FC = () => {
         
         <CardContent className="space-y-6">
           {/* Question Navigation */}
-          <div className="flex flex-wrap gap-2 justify-center mb-4">
-            {quizData.questions.map((_, index) => {
-              const isActive = index === activeQuestionIndex;
-              const isAnswered = (selectedAnswers[index] || []).length > 0;
-              const isLocked = lockedQuestions.includes(index);
-              
-              return (
-                <Button
-                  key={index}
-                  size="sm"
-                  variant={isActive ? "default" : isAnswered ? "success" : "secondary"}
-                  className={`w-10 h-10 p-0 ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
-                  onClick={() => goToQuestionIndex(index)}
-                  disabled={isLocked}
-                >
-                  {isLocked ? (
-                    <Lock className="h-3 w-3" />
-                  ) : (
-                    index + 1
-                  )}
-                </Button>
-              );
-            })}
-          </div>
+          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+            <div className="flex p-4 gap-2">
+              {quizData.questions.map((_, index) => {
+                const isActive = index === activeQuestionIndex;
+                const isAnswered = (selectedAnswers[index] || []).length > 0;
+                const isLocked = lockedQuestions.includes(index);
+                
+                return (
+                  <Button
+                    key={index}
+                    size="sm"
+                    variant={isActive ? "default" : isAnswered ? "success" : "secondary"}
+                    className={`w-10 h-10 flex-shrink-0 ${isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    onClick={() => goToQuestionIndex(index)}
+                    disabled={isLocked}
+                  >
+                    {isLocked ? (
+                      <Lock className="h-3 w-3" />
+                    ) : (
+                      index + 1
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+          </ScrollArea>
           
           <div className="text-lg font-medium">{currentQuestion.question}</div>
           

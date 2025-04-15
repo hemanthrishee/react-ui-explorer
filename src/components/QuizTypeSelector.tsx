@@ -111,7 +111,7 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
 
   const handleQuestionCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
-    if (!isNaN(value) && value > 0 && value <= 50) {
+    if (!isNaN(value) && value >= 1 && value <= 50) {
       setQuestionCount(value);
     }
   };
@@ -191,9 +191,9 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
                     max="50"
                     value={questionCount}
                     onChange={handleQuestionCountChange}
-                    className="w-20"
+                    className="w-24"
                   />
-                  <span className="text-sm text-muted-foreground">questions</span>
+                  <span className="text-sm text-muted-foreground">questions (1-50)</span>
                 </div>
               </div>
             </div>
@@ -277,20 +277,21 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
               </div>
               
               <div className="mt-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Duration: {duration} minute{duration !== 1 ? 's' : ''}</span>
-                </div>
-                <Slider
-                  value={[duration]}
-                  min={1}
-                  max={60}
-                  step={1}
-                  onValueChange={(values) => setDuration(values[0])}
-                  className="w-full"
-                />
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-muted-foreground">1 min</span>
-                  <span className="text-xs text-muted-foreground">60 min</span>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={duration}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (!isNaN(value) && value >= 1 && value <= 60) {
+                        setDuration(value);
+                      }
+                    }}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">minutes (1-60)</span>
                 </div>
               </div>
             </div>
