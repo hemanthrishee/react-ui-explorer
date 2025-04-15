@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,10 +49,17 @@ const Header: React.FC = () => {
     }
     
     setIsLoading(true);
-    navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+    setShowQuizButton(false); // Hide quiz button during new search
+    
+    // Clear existing content by navigating to a temporary route
+    navigate('/');
+    
+    // Then navigate to the search route
     setTimeout(() => {
+      navigate(`/topic/${encodeURIComponent(searchQuery.toLowerCase())}`);
+      setSearchQuery(''); // Clear the search input
       setIsLoading(false);
-    }, 1000);
+    }, 100);
   };
 
   const handleGenerateQuiz = () => {
