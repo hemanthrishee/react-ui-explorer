@@ -17,10 +17,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { Clock, AlertCircle, ExternalLink, BookCheck } from 'lucide-react';
+import { Clock, AlertCircle, ExternalLink, BookCheck, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import QuizTypeSelector from './QuizTypeSelector';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SubTopic {
   name: string;
@@ -38,8 +39,11 @@ interface SubTopicsSectionProps {
 
 const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicName }) => {
   const [showQuizDialog, setShowQuizDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<SubTopic | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   
   const getDifficultyColor = (difficulty: string) => {
     switch(difficulty.toLowerCase()) {
@@ -55,20 +59,36 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
   };
   
   const handleGenerateQuiz = () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
     setShowQuizDialog(true);
   };
 
   const handleQuizConfigSubmit = (quizConfig: any, subTopic: string) => {
     setShowQuizDialog(false);
+    setIsLoading(true);
+    
+    // Clear existing content by navigating to a temporary route
+    navigate('/');
     
     // Extract the topic from the URL
     const topicMatch = location.pathname.match(/\/topic\/(.+)/);
     if (topicMatch && topicMatch[1]) {
       const topic = decodeURIComponent(topicMatch[1]);
       
-      // Navigate to the quiz page with the quiz configuration
-      navigate(`/quiz/${topic}`, { state: { quizConfig, subTopic } });
+      // Navigate to the quiz page with the quiz configuration after a short delay
+      setTimeout(() => {
+        navigate(`/quiz/${topic}`, { state: { quizConfig, subTopic } });
+        setIsLoading(false);
+      }, 100);
     }
+  };
+
+  const handleGoToAuth = () => {
+    setShowAuthDialog(false);
+    navigate('/auth');
   };
 
   return (
@@ -158,10 +178,15 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
                         <div className="pt-2">
                           <Button 
                             className="w-full bg-react-dark text-react-light hover:bg-react-dark/90"
-                            onClick={() => handleGenerateQuiz()} 
-                            >
-                            <BookCheck className="h-4 w-4 mr-2" />
-                            Generate Quiz
+                            onClick={handleGenerateQuiz}
+                            disabled={isLoading}
+                          >
+                            {isLoading ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <BookCheck className="h-4 w-4 mr-2" />
+                            )}
+                            {isLoading ? "Loading..." : "Generate Quiz"}
                           </Button>
                         </div>
                         <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
@@ -172,7 +197,26 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
                                 Customize your quiz settings
                               </DialogDescription>
                             </DialogHeader>
-                            <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={(quizConfig)=>handleQuizConfigSubmit(quizConfig, selectedTopic.name)} />
+                            <QuizTypeSelector 
+                              onClose={() => setShowQuizDialog(false)} 
+                              onSubmit={(quizConfig) => handleQuizConfigSubmit(quizConfig, selectedTopic.name)} 
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Authentication Required</DialogTitle>
+                              <DialogDescription>
+                                You need to sign in to generate quizzes
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex flex-col gap-4 mt-4">
+                              <p className="text-center text-gray-600">Sign in to track your quiz history and progress</p>
+                              <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
+                                Go to Sign In
+                              </Button>
+                            </div>
                           </DialogContent>
                         </Dialog>
                       </div>

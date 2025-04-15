@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Code, Search, Loader2 } from 'lucide-react';
+import { Code, Search, Loader2, UserCircle } from 'lucide-react';
 import { toast } from "sonner";
 import { 
   Dialog,
@@ -12,14 +13,17 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import QuizTypeSelector from '@/components/QuizTypeSelector';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showQuizDialog, setShowQuizDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [showQuizButton, setShowQuizButton] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const isTopicPage = location.pathname.startsWith('/topic/');
@@ -63,6 +67,10 @@ const Header: React.FC = () => {
   };
 
   const handleGenerateQuiz = () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
     setShowQuizDialog(true);
   };
 
@@ -77,6 +85,15 @@ const Header: React.FC = () => {
       // Navigate to the quiz page with the quiz configuration
       navigate(`/quiz/${topic}`, { state: { quizConfig } });
     }
+  };
+
+  const handleGoToProfile = () => {
+    navigate('/profile');
+  };
+
+  const handleGoToAuth = () => {
+    setShowAuthDialog(false);
+    navigate('/auth');
   };
 
   return (
@@ -108,14 +125,35 @@ const Header: React.FC = () => {
           </Button>
         </form>
         
-        {showQuizButton && (
-          <Button 
-            className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
-            onClick={handleGenerateQuiz}
-          >
-            Generate Quiz
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isAuthenticated ? (
+            <>
+              {showQuizButton && (
+                <Button 
+                  className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
+                  onClick={handleGenerateQuiz}
+                >
+                  Generate Quiz
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                className="text-white hover:text-react-primary"
+                onClick={handleGoToProfile}
+              >
+                <UserCircle className="h-5 w-5 mr-1" />
+                Profile
+              </Button>
+            </>
+          ) : (
+            <Button 
+              className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
+              onClick={() => setShowAuthDialog(true)}
+            >
+              Sign In
+            </Button>
+          )}
+        </div>
 
         <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
           <DialogContent className="sm:max-w-md">
@@ -126,6 +164,23 @@ const Header: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={handleQuizConfigSubmit} />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Authentication Required</DialogTitle>
+              <DialogDescription>
+                You need to sign in to generate quizzes
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 mt-4">
+              <p className="text-center text-gray-600">Sign in to track your quiz history and progress</p>
+              <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
+                Go to Sign In
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

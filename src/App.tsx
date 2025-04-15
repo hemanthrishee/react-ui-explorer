@@ -9,7 +9,10 @@ import Footer from '@/components/Footer';
 import Index from '@/pages/Index';
 import TopicPage from '@/pages/TopicPage';
 import QuizPage from '@/pages/QuizPage';
+import AuthPage from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
 import NotFound from '@/pages/NotFound';
+import { AuthProvider } from '@/contexts/AuthContext';
 import './App.css';
 
 // Create a client
@@ -25,22 +28,26 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router>
-          <div className="flex flex-col min-h-screen w-full">
-            <SonnerToaster richColors />
-            <Toaster />
-            <Header />
-            <main className="flex-grow w-full">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/topic/:topic" element={<TopicPage />} />
-                <Route path="/quiz/:topic" element={<QuizPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <div className="flex flex-col min-h-screen w-full">
+              <SonnerToaster richColors />
+              <Toaster />
+              <Header />
+              <main className="flex-grow w-full">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/topic/:topic" element={<TopicPage />} />
+                  <Route path="/quiz/:topic" element={<QuizPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </Router>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
