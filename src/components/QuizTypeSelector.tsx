@@ -249,7 +249,7 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
                     onChange={handleQuestionCountChange}
                     className="w-24"
                   />
-                  <span className="text-sm text-muted-foreground">questions (1-50)</span>
+                  <span className="text-sm text-muted-foreground">Questions</span>
                 </div>
               </div>
             </div>
@@ -342,7 +342,7 @@ const QuizTypeSelector: React.FC<QuizTypeSelectorProps> = ({ onClose, onSubmit }
                     onChange={handleDurationChange}
                     className="w-24"
                   />
-                  <span className="text-sm text-muted-foreground">minutes (1-60)</span>
+                  <span className="text-sm text-muted-foreground">Minutes</span>
                 </div>
               </div>
             </div>

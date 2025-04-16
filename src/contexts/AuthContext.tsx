@@ -1,4 +1,5 @@
 
+import { set } from 'date-fns';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
 export interface User {
@@ -45,51 +46,70 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Simulate API call
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call to your backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('http://localhost:8000/authentication/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
       
-      // Dummy user data for demo purposes
-      const userData: User = {
-        id: 'user-123',
-        name: email.split('@')[0],
-        email,
-        profilePicture: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}&background=random`,
-      };
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
       
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Login error:', error);
+      const data = await response.json();
+      
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setIsLoading(false);
+      
+      window.dispatchEvent(new Event('Logged In'));
+    } catch (err) {
+      console.error('Login error:', err);
       throw new Error('Invalid credentials');
-    } finally {
+    }
+    finally {
       setIsLoading(false);
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    // Simulate API call
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call to your backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('http://localhost:8000/authentication/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          password: password,
+        }),
+      });
       
-      // Dummy user data for demo purposes
-      const userData: User = {
-        id: 'user-' + Math.random().toString(36).substr(2, 9),
-        name,
-        email,
-        profilePicture: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-      };
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
       
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Signup error:', error);
-      throw new Error('Could not create account');
-    } finally {
+      const data = await response.json();
+      
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setIsLoading(false);
+      
+      window.dispatchEvent(new Event('Signed Up'));
+    } catch (err) {
+      console.error('Signup error:', err);
+      throw new Error('Invalid credentials');
+    }
+    finally {
       setIsLoading(false);
     }
   };
