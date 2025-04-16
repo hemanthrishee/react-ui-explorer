@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { getQuizByTopic, type QuizQuestion, type QuizData } from '@/data/getQuizData';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from '@/hooks/useAuth';
 
 interface QuizConfig {
   quizType: 'mcq' | 'true-false' | 'multiple-correct';
@@ -37,6 +38,7 @@ const QuizPage: React.FC = () => {
   const { topic } = useParams<{ topic: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const user = useAuth();
   
   const defaultConfig: QuizConfig = {
     quizType: 'mcq',
@@ -260,8 +262,58 @@ const QuizPage: React.FC = () => {
     setScore(scorePercentage);
     setQuestionResults(results);
     
+    // Calculate statistics for the API call
+    const correctAttempts = Object.values(results).filter(r => r.isCorrect).length;
+    const incorrectAttempts = Object.values(results).filter(r => !r.isCorrect && r.attempted && !r.partiallyCorrect).length;
+    const partialAttempts = Object.values(results).filter(r => r.partiallyCorrect).length;
+    const unattempted = Object.values(results).filter(r => !r.attempted).length;
+    
+    // Prepare question attempts data - include all questions
+    const questionAttempts = quizData.questions.map((question, index) => {
+      // Get the time taken for this question, defaulting to 0 if not tracked
+      const timeTaken = questionTimers[index] || 0;
+      // Get the attempted options, defaulting to empty array if not attempted
+      const attemptedOptions = selectedAnswers[index] || [];
+      
+      return {
+        question_id: question.id,
+        time_taken: timeTaken,
+        attempted_options: attemptedOptions
+      };
+    });
+    
+    // Call the save quiz attempt API
+    fetch('http://localhost:8000/gemini-search/save-quiz-attempt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: user?.user?.id,
+        total_time_taken: quizConfig.duration * 60 - timeRemaining,
+        score: totalScore,
+        correct_attempts: correctAttempts,
+        incorrect_attempts: incorrectAttempts,
+        partial_attempts: partialAttempts,
+        unattempted: unattempted,
+        question_attempts: questionAttempts
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        toast.success('Quiz attempt saved successfully');
+      } else {
+        toast.error('Failed to save quiz attempt');
+      }
+    })
+    .catch(error => {
+      console.error('Error saving quiz attempt:', error);
+      toast.error('Failed to save quiz attempt');
+    });
+    
     toast.success(`Quiz completed! Your score: ${scorePercentage}%`);
-  }, [quizData, selectedAnswers, quizConfig.negativeMarking]);
+  }, [quizData, selectedAnswers, quizConfig.negativeMarking, quizConfig.duration, timeRemaining, questionTimers, user]);
   
   const handleAnswerSelect = (questionIndex: number, optionIndex: number, multiple: boolean = false) => {
     setSelectedAnswers(prev => {
