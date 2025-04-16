@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,8 +18,15 @@ import { Loader2 } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, signup, isLoading } = useAuth();
+  const { login, signup, isLoading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('signin');
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
