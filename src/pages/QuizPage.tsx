@@ -59,6 +59,8 @@ const QuizPage: React.FC = () => {
   const [quizEnded, setQuizEnded] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(quizConfig.duration * 60); // in seconds
   const [questionTimers, setQuestionTimers] = useState<Record<number, number>>({});
+  const [questionStartTimes, setQuestionStartTimes] = useState<Record<number, number>>({});
+  const [questionTotalTimes, setQuestionTotalTimes] = useState<Record<number, number>>({});
   const [lockedQuestions, setLockedQuestions] = useState<number[]>([]);
   const [score, setScore] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -107,16 +109,32 @@ const QuizPage: React.FC = () => {
     }, [topic, quizConfig]);
   
   useEffect(() => {
-    if (quizStarted && quizConfig.timerPerQuestion && !quizEnded) {
-      if (Object.keys(questionTimers).length === 0 && quizData) {
-        const initialTimers: Record<number, number> = {};
-        quizData.questions.forEach((_, index) => {
-          initialTimers[index] = timePerQuestion;
-        });
-        setQuestionTimers(initialTimers);
-      }
+    if (quizStarted && !quizEnded) {
+      // Record start time when question becomes visible
+      setQuestionStartTimes(prev => ({
+        ...prev,
+        [activeQuestionIndex]: Date.now()
+      }));
     }
-  }, [quizStarted, quizData, quizConfig.timerPerQuestion, timePerQuestion, quizEnded, questionTimers]);
+  }, [activeQuestionIndex, quizStarted, quizEnded]);
+  
+  useEffect(() => {
+    if (!quizStarted || quizEnded) return;
+
+    // Cleanup function to calculate time spent when question leaves screen
+    return () => {
+      const startTime = questionStartTimes[activeQuestionIndex];
+      if (startTime) {
+        const endTime = Date.now();
+        const timeSpent = Math.floor((endTime - startTime) / 1000); // Convert to seconds
+        
+        setQuestionTotalTimes(prev => ({
+          ...prev,
+          [activeQuestionIndex]: (prev[activeQuestionIndex] || 0) + timeSpent
+        }));
+      }
+    };
+  }, [activeQuestionIndex, quizStarted, quizEnded, questionStartTimes]);
   
   useEffect(() => {
     if (!quizStarted || quizEnded || quizConfig.timeMode === 'practice') return;
@@ -231,6 +249,18 @@ const QuizPage: React.FC = () => {
     
     if (!quizData) return;
     
+    // Calculate final time for current question
+    const startTime = questionStartTimes[activeQuestionIndex];
+    if (startTime) {
+      const endTime = Date.now();
+      const timeSpent = Math.floor((endTime - startTime) / 1000);
+      
+      setQuestionTotalTimes(prev => ({
+        ...prev,
+        [activeQuestionIndex]: (prev[activeQuestionIndex] || 0) + timeSpent
+      }));
+    }
+    
     let totalScore = 0;
     const results: Record<number, {
       attempted: boolean;
@@ -270,8 +300,9 @@ const QuizPage: React.FC = () => {
     
     // Prepare question attempts data - include all questions
     const questionAttempts = quizData.questions.map((question, index) => {
-      // Get the time taken for this question, defaulting to 0 if not tracked
-      const timeTaken = questionTimers[index] || 0;
+      // Get the total accumulated time for this question
+      const timeTaken = questionTotalTimes[index] || 0;
+      
       // Get the attempted options, defaulting to empty array if not attempted
       const attemptedOptions = selectedAnswers[index] || [];
       
@@ -313,7 +344,7 @@ const QuizPage: React.FC = () => {
     });
     
     toast.success(`Quiz completed! Your score: ${scorePercentage}%`);
-  }, [quizData, selectedAnswers, quizConfig.negativeMarking, quizConfig.duration, timeRemaining, questionTimers, user]);
+  }, [quizData, selectedAnswers, quizConfig.negativeMarking, quizConfig.duration, timeRemaining, questionStartTimes, questionTotalTimes, activeQuestionIndex, user]);
   
   const handleAnswerSelect = (questionIndex: number, optionIndex: number, multiple: boolean = false) => {
     setSelectedAnswers(prev => {
