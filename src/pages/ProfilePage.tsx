@@ -234,6 +234,14 @@ const ProfilePage: React.FC = () => {
               </div>
               
               <Separator className="my-4" />
+
+              <Button 
+                variant="default" 
+                onClick={() => navigate(-1)} 
+                className="w-full"
+              >
+                Return
+              </Button>
               
               <Button 
                 onClick={handleLogout}
