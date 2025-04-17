@@ -25,136 +25,31 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
-// Sample quiz data
-const SAMPLE_QUIZZES = [
-  {
-    id: '1',
-    topic: 'React',
-    subtopic: 'Hooks',
-    date: '2025-04-01',
-    percentage: 85,
-    total_possible_score: 10,
-    score: 8.5,
-    timeSpent: 525, // 8 minutes and 45 seconds
-    negativeMarking: true,
-    question_type: 'mcq',
-    questions: [
-      {
-        question: 'What is the purpose of useEffect hook?',
-        options: [
-          'To perform side effects in function components',
-          'To manage state in class components',
-          'To create custom hooks',
-          'To handle routing in React'
-        ],
-        correctAnswers: [0],
-        selectedAnswers: [0],
-        isCorrect: true,
-        score: 4,
-        explanation: 'useEffect is used to perform side effects in function components, such as data fetching, subscriptions, or manually changing the DOM.'
-      }
-    ]
-  },
-  {
-    id: '2',
-    topic: 'React',
-    subtopic: 'State Management',
-    date: '2025-03-25',
-    percentage: 70,
-    total_possible_score: 10,
-    score: 7,
-    timeSpent: 620, // 10 minutes and 20 seconds
-    question_type: 'multiple-correct',
-    questions: [
-      {
-        question: 'Which of these are valid React hooks?',
-        options: [
-          'useState',
-          'useEffect',
-          'useContext',
-          'useClass'
-        ],
-        correctAnswers: [0, 1, 2],
-        selectedAnswers: [0, 1],
-        isCorrect: false,
-        partiallyCorrect: true,
-        score: 2,
-        explanation: 'useState, useEffect, and useContext are valid React hooks. useClass is not a valid hook.'
-      }
-    ]
-  },
-  {
-    id: '3',
-    topic: 'JavaScript',
-    subtopic: 'Promises',
-    date: '2025-03-20',
-    percentage: 90,
-    total_possible_score: 10,
-    score: 9,
-    timeSpent: 450, // 7 minutes and 30 seconds
-    question_type: 'true-false',
-    questions: [
-      {
-        question: 'A Promise can be in one of three states: pending, fulfilled, or rejected.',
-        options: ['True', 'False'],
-        correctAnswers: [0],
-        selectedAnswers: [0],
-        isCorrect: true,
-        score: 4
-      }
-    ]
-  },
-  {
-    id: '4',
-    topic: 'TypeScript',
-    subtopic: 'Interfaces',
-    date: '2025-03-15',
-    percentage: 65,
-    total_possible_score: 10,
-    score: 6.5,
-    timeSpent: 555, // 9 minutes and 15 seconds
-    question_type: 'mcq',
-    questions: [
-      {
-        question: 'What is the difference between interfaces and types in TypeScript?',
-        selected: 'Types cannot be reopened to add new properties',
-        correct: 'Types cannot be reopened to add new properties',
-        isCorrect: true,
-      },
-      {
-        question: 'Can interfaces extend classes in TypeScript?',
-        selected: 'No',
-        correct: 'Yes',
-        isCorrect: false,
-      },
-    ]
-  },
-  {
-    id: '5',
-    topic: 'CSS',
-    subtopic: 'Flexbox',
-    date: '2025-03-10',
-    percentage: 80,
-    total_possible_score: 10,
-    score: 8,
-    timeSpent: 410, // 6 minutes and 50 seconds
-    question_type: 'mcq',
-    questions: [
-      {
-        question: 'What CSS property defines the direction of flex items?',
-        selected: 'flex-direction',
-        correct: 'flex-direction',
-        isCorrect: true,
-      },
-      {
-        question: 'What is the default value of align-items?',
-        selected: 'center',
-        correct: 'stretch',
-        isCorrect: false,
-      },
-    ]
-  },
-];
+interface Quiz {
+  id: string;
+  topic: string;
+  subtopic: string;
+  date: string;
+  percentage: number;
+  total_possible_score: number;
+  score: number;
+  timeSpent: number;
+  negativeMarking: boolean;
+  question_type: 'mcq' | 'multiple-correct' | 'true-false';
+  questions: Question[];
+}
+
+interface Question {
+  question: string;
+  options: string[];
+  correctAnswers: number[];
+  selectedAnswers: number[];
+  isCorrect: boolean;
+  partiallyCorrect: boolean;
+  score: number;
+  explanation: string;
+  timeTaken: number;
+}
 
 // Helper function to format time in seconds to YY:mm:DD:HH:MM:SS
 const formatTime = (seconds: number): string => {
@@ -191,118 +86,6 @@ const formatTime = (seconds: number): string => {
 const secondsToMinutes = (seconds: number): number => {
   return seconds / 60;
 };
-
-// Stats calculations
-const topicStats = SAMPLE_QUIZZES.reduce((acc, quiz) => {
-  if (!acc[quiz.topic]) {
-    acc[quiz.topic] = {
-      name: quiz.topic,
-      quizzes: 0,
-      avgScore: 0,
-      totalScore: 0,
-      questionTypes: {
-        'mcq': 0,
-        'multiple-correct': 0,
-        'true-false': 0
-      }
-    };
-  }
-  acc[quiz.topic].quizzes += 1;
-  acc[quiz.topic].totalScore += quiz.score;
-  acc[quiz.topic].avgScore = Math.round(acc[quiz.topic].totalScore / acc[quiz.topic].quizzes);
-  acc[quiz.topic].questionTypes[quiz.question_type] += 1;
-  return acc;
-}, {} as Record<string, { 
-  name: string; 
-  quizzes: number; 
-  avgScore: number; 
-  totalScore: number;
-  questionTypes: Record<string, number>;
-}>);
-
-const topicStatsArray = Object.values(topicStats);
-
-// Calculate overall question type distribution
-const questionTypeStats = SAMPLE_QUIZZES.reduce((acc, quiz) => {
-  if (!acc[quiz.question_type]) {
-    acc[quiz.question_type] = 0;
-  }
-  acc[quiz.question_type] += 1;
-  return acc;
-}, {} as Record<string, number>);
-
-const questionTypeData = Object.entries(questionTypeStats).map(([name, value]) => ({
-  name,
-  value
-}));
-
-const monthlyProgress = [
-  { name: 'Jan', quizzes: 0, avgScore: 0 },
-  { name: 'Feb', quizzes: 0, avgScore: 0 },
-  { name: 'Mar', quizzes: 3, avgScore: 75 },
-  { name: 'Apr', quizzes: 2, avgScore: 80 },
-  { name: 'May', quizzes: 0, avgScore: 0 },
-  { name: 'Jun', quizzes: 0, avgScore: 0 },
-];
-
-// Additional stats calculations
-const scoreDistribution = SAMPLE_QUIZZES.reduce((acc, quiz) => {
-  const range = Math.floor(quiz.score / 10) * 10;
-  const key = `${range}-${range + 9}`;
-  if (!acc[key]) {
-    acc[key] = 0;
-  }
-  acc[key] += 1;
-  return acc;
-}, {} as Record<string, number>);
-
-const scoreDistributionData = Object.entries(scoreDistribution).map(([range, count]) => ({
-  range,
-  count
-}));
-
-// Update time analysis data
-const timeAnalysis = SAMPLE_QUIZZES.map(quiz => {
-  return {
-    topic: quiz.topic,
-    timeInMinutes: secondsToMinutes(quiz.timeSpent),
-    score: quiz.percentage
-  };
-});
-
-// Stats calculations
-const performanceByQuestionType = SAMPLE_QUIZZES.reduce((acc, quiz) => {
-  if (!acc[quiz.question_type]) {
-    acc[quiz.question_type] = {
-      total: 0,
-      correct: 0,
-      time: 0
-    };
-  }
-  acc[quiz.question_type].total += 1;
-  acc[quiz.question_type].correct += quiz.score;
-  acc[quiz.question_type].time += quiz.timeSpent;
-  return acc;
-}, {} as Record<string, { total: number; correct: number; time: number }>);
-
-// Update the performance by question type data calculation
-const performanceByQuestionTypeData = Object.entries(performanceByQuestionType).map(([type, data]) => ({
-  type,
-  accuracy: (data.correct / (data.total * 10)) * 100, // Assuming 10 questions per quiz
-  avgTime: secondsToMinutes(data.time / data.total)
-}));
-
-// Add score progression data
-const scoreProgression = SAMPLE_QUIZZES
-  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  .map((quiz, index) => ({
-    date: new Date(quiz.date).toLocaleDateString(),
-    score: quiz.score,
-    topic: quiz.topic,
-    cumulativeAvg: SAMPLE_QUIZZES
-      .slice(0, index + 1)
-      .reduce((sum, q) => sum + q.score, 0) / (index + 1)
-  }));
 
 // Custom hook for scroll-triggered animations
 const useScrollAnimation = () => {
@@ -373,19 +156,145 @@ const AnimatedChart = ({ children, className = '' }: { children: React.ReactNode
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user: authUser, logout, isAuthenticated } = useAuth();
   const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('history');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [quizHistory, setQuizHistory] = useState<Quiz[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch quiz history when component mounts
+  useEffect(() => {
+    const fetchQuizHistory = async () => {
+      if (!authUser?.id) return;
+      
+      try {
+        const response = await fetch(`http://localhost:8000/quiz/quiz-history?user_id=${authUser.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch quiz history');
+        }
+        const data = await response.json();
+        setQuizHistory(data.quizzes);
+      } catch (error) {
+        console.error('Error fetching quiz history:', error);
+        toast.error('Failed to load quiz history');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuizHistory();
+  }, [authUser?.id]);
 
   // Group quizzes by topic
-  const quizzesByTopic = SAMPLE_QUIZZES.reduce((acc, quiz) => {
+  const quizzesByTopic = quizHistory.reduce((acc, quiz) => {
     if (!acc[quiz.topic]) {
       acc[quiz.topic] = [];
     }
     acc[quiz.topic].push(quiz);
     return acc;
-  }, {} as Record<string, typeof SAMPLE_QUIZZES>);
+  }, {} as Record<string, Quiz[]>);
+
+  // Stats calculations
+  const topicStats = quizHistory.reduce((acc, quiz) => {
+    if (!acc[quiz.topic]) {
+      acc[quiz.topic] = {
+        name: quiz.topic,
+        quizzes: 0,
+        avgScore: 0,
+        totalScore: 0,
+        questionTypes: {
+          'mcq': 0,
+          'multiple-correct': 0,
+          'true-false': 0
+        }
+      };
+    }
+    acc[quiz.topic].quizzes += 1;
+    acc[quiz.topic].totalScore += quiz.score;
+    acc[quiz.topic].avgScore = Math.round(acc[quiz.topic].totalScore / acc[quiz.topic].quizzes);
+    acc[quiz.topic].questionTypes[quiz.question_type] += 1;
+    return acc;
+  }, {} as Record<string, { 
+    name: string; 
+    quizzes: number; 
+    avgScore: number; 
+    totalScore: number;
+    questionTypes: Record<string, number>;
+  }>);
+
+  const topicStatsArray = Object.values(topicStats);
+
+  // Calculate overall question type distribution
+  const questionTypeStats = quizHistory.reduce((acc, quiz) => {
+    if (!acc[quiz.question_type]) {
+      acc[quiz.question_type] = 0;
+    }
+    acc[quiz.question_type] += 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const questionTypeData = Object.entries(questionTypeStats).map(([name, value]) => ({
+    name,
+    value
+  }));
+
+  // Additional stats calculations
+  const scoreDistribution = quizHistory.reduce((acc, quiz) => {
+    const range = Math.floor(quiz.score / 10) * 10;
+    const key = `${range}-${range + 9}`;
+    if (!acc[key]) {
+      acc[key] = 0;
+    }
+    acc[key] += 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const scoreDistributionData = Object.entries(scoreDistribution).map(([range, count]) => ({
+    range,
+    count
+  }));
+
+  // Update time analysis data
+  const timeAnalysis = quizHistory.map(quiz => ({
+    topic: quiz.topic,
+    timeInMinutes: secondsToMinutes(quiz.timeSpent),
+    score: quiz.percentage
+  }));
+
+  // Stats calculations
+  const performanceByQuestionType = quizHistory.reduce((acc, quiz) => {
+    if (!acc[quiz.question_type]) {
+      acc[quiz.question_type] = {
+        total: 0,
+        correct: 0,
+        time: 0
+      };
+    }
+    acc[quiz.question_type].total += 1;
+    acc[quiz.question_type].correct += quiz.score;
+    acc[quiz.question_type].time += quiz.timeSpent;
+    return acc;
+  }, {} as Record<string, { total: number; correct: number; time: number }>);
+
+  // Update the performance by question type data calculation
+  const performanceByQuestionTypeData = Object.entries(performanceByQuestionType).map(([type, data]) => ({
+    type,
+    accuracy: (data.correct / (data.total * 10)) * 100, // Assuming 10 questions per quiz
+    avgTime: secondsToMinutes(data.time / data.total)
+  }));
+
+  // Add score progression data
+  const scoreProgression = quizHistory
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((quiz, index) => ({
+      date: new Date(quiz.date).toLocaleDateString(),
+      score: quiz.score,
+      topic: quiz.topic,
+      cumulativeAvg: quizHistory
+        .slice(0, index + 1)
+        .reduce((sum, q) => sum + q.score, 0) / (index + 1)
+    }));
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -395,7 +304,7 @@ const ProfilePage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!user) {
+  if (!authUser) {
     return null; // Or a loading state
   }
 
@@ -420,12 +329,12 @@ const ProfilePage: React.FC = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  const averageScore = SAMPLE_QUIZZES.reduce((sum, quiz) => sum + quiz.percentage, 0) / SAMPLE_QUIZZES.length;
-  const totalQuizzes = SAMPLE_QUIZZES.length;
-  const totalTopics = new Set(SAMPLE_QUIZZES.map(quiz => quiz.topic)).size;
+  const averageScore = quizHistory.reduce((sum, quiz) => sum + quiz.percentage, 0) / quizHistory.length;
+  const totalQuizzes = quizHistory.length;
+  const totalTopics = new Set(quizHistory.map(quiz => quiz.topic)).size;
 
   // Calculate total time spent
-  const totalTimeSpent = SAMPLE_QUIZZES.reduce((sum, quiz) => sum + quiz.timeSpent, 0);
+  const totalTimeSpent = quizHistory.reduce((sum, quiz) => sum + quiz.timeSpent, 0);
 
   return (
     <div className="container mx-auto p-4 py-8">
@@ -436,11 +345,11 @@ const ProfilePage: React.FC = () => {
             <CardHeader className="pb-2">
               <div className="flex flex-col items-center">
                 <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={user.profilePicture} alt={user.name} />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={authUser.profilePicture} alt={authUser.name} />
+                  <AvatarFallback>{authUser.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-xl">{user.name}</CardTitle>
-                <CardDescription>{user.email}</CardDescription>
+                <CardTitle className="text-xl">{authUser.name}</CardTitle>
+                <CardDescription>{authUser.email}</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
