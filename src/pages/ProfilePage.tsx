@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
-import { BookCheck, Award, LogOut, Calendar, Clock, Check, X, BarChart3, ChevronRight } from 'lucide-react';
+import { BookCheck, Award, LogOut, Calendar, Clock, Check, X, BarChart3, ChevronRight, CheckSquare, Square, HelpCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -22,19 +21,39 @@ const SAMPLE_QUIZZES = [
     totalQuestions: 10,
     correct: 8.5,
     timeSpent: '8:45',
+    negativeMarking: true,
     questions: [
       {
         question: 'What is the purpose of useEffect hook?',
-        selected: 'To perform side effects in function components',
-        correct: 'To perform side effects in function components',
+        type: 'mcq',
+        options: [
+          'To perform side effects in function components',
+          'To manage state in class components',
+          'To create custom hooks',
+          'To handle routing in React'
+        ],
+        correctAnswers: [0],
+        selectedAnswers: [0],
         isCorrect: true,
+        score: 4,
+        explanation: 'useEffect is used to perform side effects in function components, such as data fetching, subscriptions, or manually changing the DOM.'
       },
       {
-        question: 'When does useEffect run?',
-        selected: 'After render',
-        correct: 'After render',
-        isCorrect: true,
-      },
+        question: 'Which of these are valid React hooks?',
+        type: 'multiple-correct',
+        options: [
+          'useState',
+          'useEffect',
+          'useContext',
+          'useClass'
+        ],
+        correctAnswers: [0, 1, 2],
+        selectedAnswers: [0, 1],
+        isCorrect: false,
+        partiallyCorrect: true,
+        score: 2,
+        explanation: 'useState, useEffect, and useContext are valid React hooks. useClass is not a valid hook.'
+      }
     ]
   },
   {
@@ -49,16 +68,31 @@ const SAMPLE_QUIZZES = [
     questions: [
       {
         question: 'What is Redux used for in React applications?',
-        selected: 'For routing in React applications',
-        correct: 'For global state management',
+        options: [
+          'For routing in React applications',
+          'For global state management',
+          'For styling components',
+          'For form handling'
+        ],
+        correctAnswers: [1],
+        selectedAnswers: [0],
         isCorrect: false,
+        explanation: 'Redux is a predictable state container for JavaScript apps, primarily used for managing global state in React applications.'
       },
       {
         question: 'What is the central store in Redux?',
-        selected: 'A single source of truth for application state',
-        correct: 'A single source of truth for application state',
+        options: [
+          'A component that renders UI',
+          'A single source of truth for application state',
+          'A function that returns JSX',
+          'A way to handle HTTP requests'
+        ],
+        correctAnswers: [1],
+        selectedAnswers: [1],
         isCorrect: true,
-      },
+        score: 4,
+        explanation: 'The Redux store is a single source of truth that holds the entire state of your application.'
+      }
     ]
   },
   {
@@ -437,37 +471,92 @@ const ProfilePage: React.FC = () => {
                       <h3 className="font-semibold text-lg">Questions</h3>
                       
                       <div className="space-y-4">
-                        {selectedQuiz.questions.map((q: any, i: number) => (
-                          <Card key={i} className={q.isCorrect ? 'border-green-200' : 'border-red-200'}>
-                            <CardContent className="p-4">
-                              <div className="flex items-start gap-2">
-                                <div className={`p-1 rounded-full mt-1 ${q.isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
-                                  {q.isCorrect ? 
-                                    <Check className="h-4 w-4 text-green-600" /> : 
-                                    <X className="h-4 w-4 text-red-600" />
-                                  }
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-medium mb-2">{q.question}</p>
-                                  <div className="space-y-2 text-sm">
-                                    <div>
-                                      <span className="text-gray-500">Your answer: </span>
-                                      <span className={q.isCorrect ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                                        {q.selected}
-                                      </span>
-                                    </div>
-                                    {!q.isCorrect && (
-                                      <div>
-                                        <span className="text-gray-500">Correct answer: </span>
-                                        <span className="text-green-600 font-medium">{q.correct}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
+                        {selectedQuiz.questions.map((q: any, i: number) => {
+                          const isSkipped = !q.selectedAnswers || q.selectedAnswers.length === 0;
+                          
+                          return (
+                            <div 
+                              key={i} 
+                              className={`p-4 rounded-lg border ${
+                                q.isCorrect 
+                                  ? 'border-green-200 bg-green-50' 
+                                  : q.partiallyCorrect 
+                                    ? 'border-amber-200 bg-amber-50'
+                                    : isSkipped
+                                      ? 'border-slate-200 bg-slate-50'
+                                      : 'border-red-200 bg-red-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-medium">Question {i + 1}</h4>
+                                {q.isCorrect ? (
+                                  <span className="flex items-center text-green-600 text-sm font-medium">
+                                    <Check className="h-4 w-4 mr-1" /> Correct (+{q.score})
+                                  </span>
+                                ) : isSkipped ? (
+                                  <span className="flex items-center text-slate-600 text-sm font-medium">
+                                    <HelpCircle className="h-4 w-4 mr-1" /> Not Attempted
+                                  </span>
+                                ) : q.partiallyCorrect ? (
+                                  <span className="flex items-center text-amber-600 text-sm font-medium">
+                                    <AlertCircle className="h-4 w-4 mr-1" /> Partially Correct (+{q.score})
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center text-red-600 text-sm font-medium">
+                                    <X className="h-4 w-4 mr-1" /> 
+                                    Incorrect {selectedQuiz.negativeMarking ? `(${q.score})` : ''}
+                                  </span>
+                                )}
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              
+                              <p className="mt-2">{q.question}</p>
+                              
+                              <div className="mt-3 space-y-2">
+                                {q.options.map((option: string, optIdx: number) => {
+                                  const isUserSelected = q.selectedAnswers?.includes(optIdx);
+                                  const isCorrectOption = q.correctAnswers.includes(optIdx);
+                                  
+                                  let className = "pl-2 py-1 border-l-2 ";
+                                  
+                                  if (isUserSelected && isCorrectOption) {
+                                    className += "border-green-500 bg-green-100";
+                                  } else if (isUserSelected && !isCorrectOption) {
+                                    className += "border-red-500 bg-red-100";
+                                  } else if (!isUserSelected && isCorrectOption) {
+                                    className += "border-amber-500 bg-amber-100";
+                                  } else {
+                                    className += "border-transparent";
+                                  }
+                                  
+                                  return (
+                                    <div key={optIdx} className={className}>
+                                      <div className="flex items-start gap-2">
+                                        {q.type === 'multiple-correct' ? (
+                                          isCorrectOption ? (
+                                            <CheckSquare className="h-4 w-4 text-green-600 mt-0.5" />
+                                          ) : (
+                                            <Square className="h-4 w-4 text-slate-400 mt-0.5" />
+                                          )
+                                        ) : (
+                                          <div className="relative flex h-4 w-4 items-center justify-center">
+                                            <div className={`h-3 w-3 rounded-full ${isCorrectOption ? 'bg-green-500' : 'bg-slate-200'}`}></div>
+                                          </div>
+                                        )}
+                                        <span>{option}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              
+                              {q.explanation && (
+                                <div className="mt-4 text-sm bg-white p-3 rounded border border-slate-200">
+                                  <span className="font-medium">Explanation:</span> {q.explanation}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
