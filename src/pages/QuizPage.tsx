@@ -284,8 +284,6 @@ const QuizPage: React.FC = () => {
       totalScore += result.score;
     });
     
-    totalScore = Math.max(0, totalScore);
-    
     const maxPossibleScore = quizData.questions.length * 4;
     const scorePercentage = Math.round((totalScore / maxPossibleScore) * 100);
     
@@ -327,6 +325,7 @@ const QuizPage: React.FC = () => {
         incorrect_attempts: incorrectAttempts,
         partial_attempts: partialAttempts,
         unattempted: unattempted,
+        is_negative_marking: quizConfig.negativeMarking,
         question_attempts: questionAttempts
       })
     })
