@@ -32,10 +32,10 @@ const SAMPLE_QUIZZES = [
     topic: 'React',
     subtopic: 'Hooks',
     date: '2025-04-01',
-    score: 85,
-    totalQuestions: 10,
-    correct: 8.5,
-    timeSpent: '8:45',
+    percentage: 85,
+    total_possible_score: 10,
+    score: 8.5,
+    timeSpent: 525, // 8 minutes and 45 seconds
     negativeMarking: true,
     question_type: 'mcq',
     questions: [
@@ -60,10 +60,10 @@ const SAMPLE_QUIZZES = [
     topic: 'React',
     subtopic: 'State Management',
     date: '2025-03-25',
-    score: 70,
-    totalQuestions: 10,
-    correct: 7,
-    timeSpent: '10:20',
+    percentage: 70,
+    total_possible_score: 10,
+    score: 7,
+    timeSpent: 620, // 10 minutes and 20 seconds
     question_type: 'multiple-correct',
     questions: [
       {
@@ -88,10 +88,10 @@ const SAMPLE_QUIZZES = [
     topic: 'JavaScript',
     subtopic: 'Promises',
     date: '2025-03-20',
-    score: 90,
-    totalQuestions: 10,
-    correct: 9,
-    timeSpent: '7:30',
+    percentage: 90,
+    total_possible_score: 10,
+    score: 9,
+    timeSpent: 450, // 7 minutes and 30 seconds
     question_type: 'true-false',
     questions: [
       {
@@ -109,10 +109,10 @@ const SAMPLE_QUIZZES = [
     topic: 'TypeScript',
     subtopic: 'Interfaces',
     date: '2025-03-15',
-    score: 65,
-    totalQuestions: 10,
-    correct: 6.5,
-    timeSpent: '9:15',
+    percentage: 65,
+    total_possible_score: 10,
+    score: 6.5,
+    timeSpent: 555, // 9 minutes and 15 seconds
     question_type: 'mcq',
     questions: [
       {
@@ -134,10 +134,10 @@ const SAMPLE_QUIZZES = [
     topic: 'CSS',
     subtopic: 'Flexbox',
     date: '2025-03-10',
-    score: 80,
-    totalQuestions: 10,
-    correct: 8,
-    timeSpent: '6:50',
+    percentage: 80,
+    total_possible_score: 10,
+    score: 8,
+    timeSpent: 410, // 6 minutes and 50 seconds
     question_type: 'mcq',
     questions: [
       {
@@ -155,6 +155,42 @@ const SAMPLE_QUIZZES = [
     ]
   },
 ];
+
+// Helper function to format time in seconds to YY:mm:DD:HH:MM:SS
+const formatTime = (seconds: number): string => {
+  const years = Math.floor(seconds / (365 * 24 * 3600));
+  const remainingSeconds = seconds % (365 * 24 * 3600);
+  
+  const months = Math.floor(remainingSeconds / (30 * 24 * 3600));
+  const remainingSeconds2 = remainingSeconds % (30 * 24 * 3600);
+  
+  const days = Math.floor(remainingSeconds2 / (24 * 3600));
+  const remainingSeconds3 = remainingSeconds2 % (24 * 3600);
+  
+  const hours = Math.floor(remainingSeconds3 / 3600);
+  const remainingSeconds4 = remainingSeconds3 % 3600;
+  
+  const minutes = Math.floor(remainingSeconds4 / 60);
+  const remainingSeconds5 = remainingSeconds4 % 60;
+  
+  const pad = (num: number) => num.toString().padStart(2, '0');
+  
+  const parts = [];
+  
+  if (years > 0) parts.push(pad(years));
+  if (months > 0 || parts.length > 0) parts.push(pad(months));
+  if (days > 0 || parts.length > 0) parts.push(pad(days));
+  if (hours > 0 || parts.length > 0) parts.push(pad(hours));
+  if (minutes > 0 || parts.length > 0) parts.push(pad(minutes));
+  parts.push(pad(remainingSeconds5));
+  
+  return parts.join(':');
+};
+
+// Helper function to convert seconds to minutes for charts
+const secondsToMinutes = (seconds: number): number => {
+  return seconds / 60;
+};
 
 // Stats calculations
 const topicStats = SAMPLE_QUIZZES.reduce((acc, quiz) => {
@@ -225,15 +261,16 @@ const scoreDistributionData = Object.entries(scoreDistribution).map(([range, cou
   count
 }));
 
+// Update time analysis data
 const timeAnalysis = SAMPLE_QUIZZES.map(quiz => {
-  const [minutes, seconds] = quiz.timeSpent.split(':').map(Number);
   return {
     topic: quiz.topic,
-    timeInMinutes: minutes + seconds / 60,
-    score: quiz.score
+    timeInMinutes: secondsToMinutes(quiz.timeSpent),
+    score: quiz.percentage
   };
 });
 
+// Stats calculations
 const performanceByQuestionType = SAMPLE_QUIZZES.reduce((acc, quiz) => {
   if (!acc[quiz.question_type]) {
     acc[quiz.question_type] = {
@@ -243,15 +280,16 @@ const performanceByQuestionType = SAMPLE_QUIZZES.reduce((acc, quiz) => {
     };
   }
   acc[quiz.question_type].total += 1;
-  acc[quiz.question_type].correct += quiz.correct;
-  acc[quiz.question_type].time += parseInt(quiz.timeSpent.split(':')[0]) * 60 + parseInt(quiz.timeSpent.split(':')[1]);
+  acc[quiz.question_type].correct += quiz.score;
+  acc[quiz.question_type].time += quiz.timeSpent;
   return acc;
 }, {} as Record<string, { total: number; correct: number; time: number }>);
 
+// Update the performance by question type data calculation
 const performanceByQuestionTypeData = Object.entries(performanceByQuestionType).map(([type, data]) => ({
   type,
   accuracy: (data.correct / (data.total * 10)) * 100, // Assuming 10 questions per quiz
-  avgTime: data.time / data.total
+  avgTime: secondsToMinutes(data.time / data.total)
 }));
 
 // Add score progression data
@@ -382,9 +420,12 @@ const ProfilePage: React.FC = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  const averageScore = SAMPLE_QUIZZES.reduce((sum, quiz) => sum + quiz.score, 0) / SAMPLE_QUIZZES.length;
+  const averageScore = SAMPLE_QUIZZES.reduce((sum, quiz) => sum + quiz.percentage, 0) / SAMPLE_QUIZZES.length;
   const totalQuizzes = SAMPLE_QUIZZES.length;
   const totalTopics = new Set(SAMPLE_QUIZZES.map(quiz => quiz.topic)).size;
+
+  // Calculate total time spent
+  const totalTimeSpent = SAMPLE_QUIZZES.reduce((sum, quiz) => sum + quiz.timeSpent, 0);
 
   return (
     <div className="container mx-auto p-4 py-8">
@@ -410,15 +451,15 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
                   <div className="text-xl font-semibold">{Math.round(averageScore)}%</div>
-                  <div className="text-xs text-gray-500">Average Score</div>
+                  <div className="text-xs text-gray-500">Average Percentage</div>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
                   <div className="text-xl font-semibold">{totalTopics}</div>
                   <div className="text-xs text-gray-500">Topics</div>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">12</div>
-                  <div className="text-xs text-gray-500">Days Streak</div>
+                  <div className="text-xl font-semibold">{formatTime(totalTimeSpent)}</div>
+                  <div className="text-xs text-gray-500">Total Time Spent</div>
                 </div>
               </div>
               
@@ -518,13 +559,13 @@ const ProfilePage: React.FC = () => {
                                   </div>
                                   <div className="flex items-center gap-1">
                                     <Clock className="h-3.5 w-3.5" />
-                                    <span>{quiz.timeSpent}</span>
+                                    <span>{formatTime(quiz.timeSpent)}</span>
                                   </div>
                                 </div>
                               </div>
                               <div className="flex flex-col items-end">
-                                <div className={`text-lg font-bold ${quiz.score >= 80 ? 'text-green-600' : quiz.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-                                  {quiz.score}%
+                                <div className={`text-lg font-bold ${quiz.percentage >= 80 ? 'text-green-600' : quiz.percentage >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                                  {quiz.percentage}%
                                 </div>
                                 <div className="text-xs text-gray-500 flex items-center gap-1">
                                   <span>Details</span>
@@ -681,7 +722,7 @@ const ProfilePage: React.FC = () => {
                             <Tooltip />
                             <Legend />
                             <Bar yAxisId="left" dataKey="accuracy" fill="#8884d8" name="Accuracy (%)" />
-                            <Bar yAxisId="right" dataKey="avgTime" fill="#82ca9d" name="Avg Time (seconds)" />
+                            <Bar yAxisId="right" dataKey="avgTime" fill="#82ca9d" name="Avg Time (minutes)" />
                           </BarChart>
                         </ResponsiveContainer>
                       </CardContent>
@@ -759,7 +800,7 @@ const ProfilePage: React.FC = () => {
                     <CardHeader>
                       <CardTitle>Quiz Summary</CardTitle>
                       <CardDescription>
-                        Taken on {new Date(selectedQuiz.date).toLocaleDateString()} • Time spent: {selectedQuiz.timeSpent}
+                        Taken on {new Date(selectedQuiz.date).toLocaleDateString()} • Time spent: {formatTime(selectedQuiz.timeSpent)}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -767,22 +808,22 @@ const ProfilePage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Award className="h-5 w-5 text-amber-500" />
                           <div>
-                            <div className="text-sm text-gray-500">Score</div>
-                            <div className="font-bold text-xl">{selectedQuiz.score}%</div>
+                            <div className="text-sm text-gray-500">Percentage</div>
+                            <div className="font-bold text-xl">{selectedQuiz.percentage}%</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <BookCheck className="h-5 w-5 text-blue-500" />
                           <div>
-                            <div className="text-sm text-gray-500">Correct Answers</div>
-                            <div className="font-bold text-xl">{selectedQuiz.correct} / {selectedQuiz.totalQuestions}</div>
+                            <div className="text-sm text-gray-500">Points</div>
+                            <div className="font-bold text-xl">{selectedQuiz.score} / {selectedQuiz.total_possible_score}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-5 w-5 text-purple-500" />
                           <div>
                             <div className="text-sm text-gray-500">Time</div>
-                            <div className="font-bold text-xl">{selectedQuiz.timeSpent}</div>
+                            <div className="font-bold text-xl">{formatTime(selectedQuiz.timeSpent)}</div>
                           </div>
                         </div>
                       </div>
