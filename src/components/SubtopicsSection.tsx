@@ -71,7 +71,6 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
     setIsLoading(true);
     
     // Clear existing content by navigating to a temporary route
-    navigate('/');
     
     // Extract the topic from the URL
     const topicMatch = location.pathname.match(/\/topic\/(.+)/);

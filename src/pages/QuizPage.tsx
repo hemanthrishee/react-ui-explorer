@@ -326,7 +326,9 @@ const QuizPage: React.FC = () => {
         partial_attempts: partialAttempts,
         unattempted: unattempted,
         is_negative_marking: quizConfig.negativeMarking,
-        question_attempts: questionAttempts
+        question_attempts: questionAttempts,
+        topic: quizData.topic,
+        subtopic: subTopic,
       })
     })
     .then(response => response.json())
