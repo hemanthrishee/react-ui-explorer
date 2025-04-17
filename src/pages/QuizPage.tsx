@@ -314,7 +314,7 @@ const QuizPage: React.FC = () => {
     });
     
     // Call the save quiz attempt API
-    fetch('http://localhost:8000/gemini-search/save-quiz-attempt', {
+    fetch('http://localhost:8000/quiz/save-quiz-attempt', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
