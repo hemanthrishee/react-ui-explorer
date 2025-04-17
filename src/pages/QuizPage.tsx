@@ -529,6 +529,7 @@ const QuizPage: React.FC = () => {
   
   if (quizEnded) {
     return <QuizResults 
+      topic={quizData.topic}
       quizData={quizData}
       selectedAnswers={selectedAnswers}
       score={score}
@@ -693,6 +694,7 @@ const QuizPage: React.FC = () => {
 };
 
 interface QuizResultsProps {
+  topic: string;
   quizData: QuizData;
   selectedAnswers: Record<string, number[]>;
   score: number;
@@ -709,6 +711,7 @@ interface QuizResultsProps {
 const QuizResults: React.FC<QuizResultsProps> = ({ 
   quizData, 
   selectedAnswers, 
+  topic,
   score,
   onReturnToTopic,
   questionResults,
@@ -721,6 +724,8 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   const maxPossiblePoints = quizData.questions.length * 4;
   
   const scorePercentage = Math.round((totalPoints / maxPossiblePoints) * 100);
+
+  const navigate = useNavigate();
   
   const getScoreColor = (percentage: number): string => {
     if (percentage >= 80) return 'text-green-600';
@@ -730,6 +735,15 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
+      <div className="w-full mb-4">
+        <Button 
+          variant="default" 
+          onClick={() => navigate(`/topic/${topic}`)}
+          className="w-full"
+        >
+          Return to Topic
+        </Button>
+      </div>
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Quiz Results</CardTitle>
@@ -747,8 +761,8 @@ const QuizResults: React.FC<QuizResultsProps> = ({
             </div>
             <div className="text-sm text-muted-foreground">
               {scorePercentage >= 80 ? 'Excellent work!' : 
-               scorePercentage >= 60 ? 'Good job!' : 
-               'Keep practicing!'}
+                scorePercentage >= 60 ? 'Good job!' : 
+                'Keep practicing!'}
             </div>
             <div className="text-sm text-muted-foreground mt-1">
               ({scorePercentage}%)
