@@ -78,9 +78,6 @@ const Index = () => {
                 className="py-6 border-gray-200 hover:border-react-primary hover:bg-gray-50"
                 onClick={() => {
                   setSearchQuery(topic);
-                  document.querySelector('form')?.dispatchEvent(
-                    new Event('submit', { cancelable: true, bubbles: true })
-                  );
                 }}
                 disabled={isLoading}
               >
