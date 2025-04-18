@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -40,6 +39,7 @@ interface SubTopicsSectionProps {
 const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicName }) => {
   const [showQuizDialog, setShowQuizDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showResourcesDialog, setShowResourcesDialog] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<SubTopic | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -88,6 +88,30 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
   const handleGoToAuth = () => {
     setShowAuthDialog(false);
     navigate('/auth');
+  };
+
+  const handleGenerateResources = () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    setShowResourcesDialog(true);
+  };
+
+  // Sample resources data
+  const sampleResources = {
+    videos: [
+      { title: "Introduction to " + selectedTopic?.name, url: "https://www.youtube.com/watch?v=SqcY0GlETPk", duration: "10:30" },
+      { title: "Advanced Concepts in " + selectedTopic?.name, url: "https://www.youtube.com/watch?v=RGKi6LSPDLU", duration: "15:45" }
+    ],
+    articles: [
+      { title: "Understanding " + selectedTopic?.name, url: "https://www.joshwcomeau.com/react/css-in-rsc/", readTime: "5 min" },
+      { title: "Best Practices for " + selectedTopic?.name, url: "https://www.joshwcomeau.com/react/server-components/", readTime: "8 min" }
+    ],
+    documentation: [
+      { title: "Official Documentation", url: "https://react.dev/", type: "Web" },
+      { title: "API Reference", url: "https://react.dev/", type: "Web" }
+    ]
   };
 
   return (
@@ -169,7 +193,10 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
                         </div>
                         
                         <div className="pt-2">
-                          <Button className="w-full bg-react-primary text-react-secondary hover:bg-react-primary/90">
+                          <Button 
+                            className="w-full bg-react-primary text-react-secondary hover:bg-react-primary/90"
+                            onClick={handleGenerateResources}
+                          >
                             <ExternalLink className="h-4 w-4 mr-2" />
                             Generate Resources
                           </Button>
@@ -215,6 +242,74 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
                               <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
                                 Go to Sign In
                               </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog open={showResourcesDialog} onOpenChange={setShowResourcesDialog}>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Learning Resources for {selectedTopic?.name}</DialogTitle>
+                              <DialogDescription>
+                                Curated resources to help you master this topic
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-6 mt-4">
+                              <div>
+                                <h3 className="text-lg font-semibold mb-3">Videos</h3>
+                                <div className="space-y-2">
+                                  {sampleResources.videos.map((video, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                      <div>
+                                        <p className="font-medium">{video.title}</p>
+                                        <p className="text-sm text-gray-500">Duration: {video.duration}</p>
+                                      </div>
+                                      <Button variant="outline" size="sm" asChild>
+                                        <a href={video.url} target="_blank" rel="noopener noreferrer">
+                                          Watch
+                                        </a>
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold mb-3">Articles</h3>
+                                <div className="space-y-2">
+                                  {sampleResources.articles.map((article, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                      <div>
+                                        <p className="font-medium">{article.title}</p>
+                                        <p className="text-sm text-gray-500">Read time: {article.readTime}</p>
+                                      </div>
+                                      <Button variant="outline" size="sm" asChild>
+                                        <a href={article.url} target="_blank" rel="noopener noreferrer">
+                                          Read
+                                        </a>
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div>
+                                <h3 className="text-lg font-semibold mb-3">Documentation</h3>
+                                <div className="space-y-2">
+                                  {sampleResources.documentation.map((doc, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                      <div>
+                                        <p className="font-medium">{doc.title}</p>
+                                        <p className="text-sm text-gray-500">Type: {doc.type}</p>
+                                      </div>
+                                      <Button variant="outline" size="sm" asChild>
+                                        <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                          View
+                                        </a>
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </DialogContent>
                         </Dialog>
