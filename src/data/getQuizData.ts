@@ -1,6 +1,6 @@
 
 export type QuizQuestionType = 'mcq' | 'true-false' | 'multiple-correct';
-
+const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 export interface QuizQuestion {
   id: string;
   type: QuizQuestionType;
@@ -20,7 +20,7 @@ export const getQuizByTopic = async (topic: string, question_type: string, num_q
   const lowerCaseTopic = topic.toLowerCase();
   
   try {
-    const response = await fetch('http://localhost:8000/gemini-search/generate-quiz', {
+    const response = await fetch(API_URL + '/gemini-search/generate-quiz', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

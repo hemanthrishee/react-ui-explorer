@@ -13,6 +13,8 @@ import KeyTakeawaysSection from '@/components/KeyTakeawaysSection';
 import FaqSection from '@/components/FaqSection';
 import RelatedTopicsSection from '@/components/RelatedTopicsSection';
 
+const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
+
 interface TopicData {
   [topic: string]: {
     shortDescription: {
@@ -82,7 +84,7 @@ const TopicPage = () => {
       }
       
       try {
-        const response = await fetch('http://localhost:8000/gemini-search/search', {
+        const response = await fetch(API_URL + '/gemini-search/search', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

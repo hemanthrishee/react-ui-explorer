@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { getQuizByTopic, type QuizQuestion, type QuizData } from '@/data/getQuizData';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from '@/hooks/useAuth';
+const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 interface QuizConfig {
   quizType: 'mcq' | 'true-false' | 'multiple-correct';
@@ -312,7 +313,7 @@ const QuizPage: React.FC = () => {
     });
     
     // Call the save quiz attempt API
-    fetch('http://localhost:8000/quiz/save-quiz-attempt', {
+    fetch(API_URL + '/quiz/save-quiz-attempt', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

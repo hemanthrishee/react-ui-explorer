@@ -1,6 +1,7 @@
 
 import { set } from 'date-fns';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 export interface User {
   id: string;
@@ -48,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/authentication/login', {
+      const response = await fetch(API_URL + '/authentication/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/authentication/signup', {
+      const response = await fetch(API_URL + '/authentication/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

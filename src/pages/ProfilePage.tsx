@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 interface Quiz {
   id: string;
@@ -169,7 +170,7 @@ const ProfilePage: React.FC = () => {
       if (!authUser?.id) return;
       
       try {
-        const response = await fetch(`http://localhost:8000/quiz/quiz-history?user_id=${authUser.id}`);
+        const response = await fetch(API_URL + `/quiz/quiz-history?user_id=${authUser.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch quiz history');
         }
