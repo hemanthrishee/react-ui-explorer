@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -48,12 +47,14 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
   return (
     <section id="roadmap" className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-4">
-          {topicName} Learning <span className="text-react-primary">Roadmap</span>
-        </h2>
-        <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-          Follow this structured path to master {topicName}, from fundamental concepts to advanced techniques
-        </p>
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">
+            {topicName} Learning <span className="text-react-primary">Roadmap</span>
+          </h2>
+          <p className="text-gray-600 mb-12">
+            Follow this structured path to master {topicName}, from fundamental concepts to advanced techniques
+          </p>
+        </div>
         
         <div className="mb-12">
           <Card>
@@ -68,7 +69,7 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
                 {prerequisites.map((prereq, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span><ReactMarkdown>{prereq}</ReactMarkdown></span>
+                    <span className="text-left"><ReactMarkdown>{prereq}</ReactMarkdown></span>
                   </li>
                 ))}
               </ul>
@@ -83,22 +84,22 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
               className={`transition-all duration-300 ${expandedLevel === level.name ? 'border-react-primary shadow-md' : 'card-hover'}`}
             >
               <div 
-                className="p-6 flex justify-between items-center cursor-pointer" 
+                className="p-6 flex justify-between items-start cursor-pointer" 
                 onClick={() => handleLevelClick(level.name)}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`text-xl font-bold ${getDifficultyColor(level.name)}`}>
+                <div className="flex items-start gap-3">
+                  <div className={`text-xl font-bold ${getDifficultyColor(level.name)} mt-1`}>
                     {index + 1}
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold">{level.name}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-xl font-semibold text-left">{level.name}</h3>
+                    <p className="text-sm text-gray-500 text-left">
                       {level["description"]}
                     </p>
                   </div>
                 </div>
                 <ChevronRight 
-                  className={`h-5 w-5 transition-transform ${expandedLevel === level.name ? 'rotate-90' : ''}`} 
+                  className={`h-5 w-5 transition-transform flex-shrink-0 mt-1.5 ${expandedLevel === level.name ? 'rotate-90' : ''}`} 
                 />
               </div>
               
@@ -106,15 +107,15 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
                 <CardContent className="pt-0 pb-6 animate-fade-in">
                   <div className="border-t pt-4 mb-4"></div>
                   
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <Code className="h-4 w-4 text-react-primary" />
+                  <h4 className="font-semibold mb-2 flex items-center gap-2 text-left">
+                    <Code className="h-4 w-4 text-react-primary flex-shrink-0" />
                     Topics to Cover
                   </h4>
                   <ul className="space-y-2 mb-6">
                     {level.topics.map((topic, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <ChevronRight className="h-4 w-4 text-react-primary flex-shrink-0 mt-1" />
-                        <span className="text-gray-700">{topic}</span>
+                        <span className="text-gray-700 text-left">{topic}</span>
                       </li>
                     ))}
                   </ul>
@@ -125,7 +126,7 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
                         How to Conquer This Level
                       </AccordionTrigger>
                       <AccordionContent>
-                        <p className="text-gray-700">{level.howToConquer}</p>
+                        <p className="text-gray-700 text-left">{level.howToConquer}</p>
                       </AccordionContent>
                     </AccordionItem>
                     
@@ -136,7 +137,7 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
                       <AccordionContent>
                         <div className="flex gap-2">
                           <LightbulbIcon className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                          <p className="text-gray-700">{level.insiderTips}</p>
+                          <p className="text-gray-700 text-left">{level.insiderTips}</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
