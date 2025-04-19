@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -6,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ScrollToTop from '@/components/ScrollToTop';
 import Index from '@/pages/Index';
 import TopicPage from '@/pages/TopicPage';
 import QuizPage from '@/pages/QuizPage';
@@ -30,6 +30,7 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <Router>
+            <ScrollToTop />
             <div className="flex flex-col min-h-screen w-full">
               <SonnerToaster richColors />
               <Toaster />
