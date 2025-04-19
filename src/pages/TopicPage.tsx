@@ -70,6 +70,7 @@ const TopicPage = () => {
   const [topicData, setTopicData] = useState<TopicData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formattedTopicName, setFormattedTopicName] = useState<string>(topicName ? topicName.charAt(0).toUpperCase() + topicName.slice(1) : '');
+  const [activeSection, setActiveSection] = useState('introduction');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showHamburger, setShowHamburger] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,51 @@ const TopicPage = () => {
     }
   }, [topicName]);
 
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-50% 0px',  // Consider element visible when it's in the middle of viewport
+      threshold: 0
+    };
+
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // Observe all sections
+    const sections = [
+      'introduction',
+      'why-learn',
+      'roadmap',
+      'subtopics',
+      'key-takeaways',
+      'faq',
+      'related'
+    ];
+
+    sections.forEach(sectionId => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      sections.forEach(sectionId => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
+  }, [topicData]); // Re-run when topicData changes as sections might not be available immediately
+
   const goBack = () => {
     navigate('/');
   };
@@ -149,6 +195,7 @@ const TopicPage = () => {
     const section = document.getElementById(sectionId);
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' });
+      setActiveSection(sectionId);
     }
   };
 
@@ -212,35 +259,21 @@ const TopicPage = () => {
   }
 
   return (
-    <div className="flex-grow">
+    <div className="flex-grow pb-16 lg:pb-0 relative">
       <div className="container mx-auto px-4">
-        <div className="flex flex-wrap items-start w-full gap-x-2">
-          <div className="flex items-center py-2 w-full lg:w-auto justify-between">
-            <Button 
-              variant="outline" 
-              onClick={goBack} 
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Search
-            </Button>
-            
-            {/* Mobile Menu Button */}
-            <Button
-              ref={menuButtonRef}
-              variant="ghost"
-              size="sm"
-              className="lg:hidden flex items-center gap-2 focus:outline-none focus:ring-0 hover:bg-transparent active:bg-transparent"
-              onClick={handleMenuToggle}
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              <span className="sr-only">Navigation Menu</span>
-              <span className="text-sm">Menu</span>
-            </Button>
-          </div>
+        <div className="hidden lg:flex items-center py-2">
+          {/* Desktop Back Button */}
+          <Button 
+            variant="outline" 
+            onClick={goBack} 
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Search
+          </Button>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex flex-1 flex-wrap justify-end gap-1 sm:justify-between py-2">
+          <div className="flex flex-1 flex-wrap justify-end gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
@@ -311,110 +344,9 @@ const TopicPage = () => {
               Related
             </Button>
           </div>
-
-          {/* Mobile Navigation Menu */}
-          <div 
-            className={`lg:hidden w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform ${
-              isMobileMenuOpen 
-                ? 'opacity-100 translate-y-0 max-h-[500px] mt-0' 
-                : 'opacity-0 -translate-y-2 pointer-events-none max-h-0 overflow-hidden mt-0 p-0'
-            }`}
-          >
-            <div className={`flex flex-col gap-1 p-2 ${!isMobileMenuOpen && 'hidden'}`}>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('introduction');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Introduction
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('why-learn');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <ListChecks className="h-4 w-4 mr-2" />
-                Why Learn
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('roadmap');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <Map className="h-4 w-4 mr-2" />
-                Roadmap
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('subtopics');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <LinkIcon className="h-4 w-4 mr-2" />
-                Topics
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('key-takeaways');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <Check className="h-4 w-4 mr-2" />
-                Key Takeaways
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('faq');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <HelpCircle className="h-4 w-4 mr-2" />
-                FAQ
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  scrollToSection('related');
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <Link2 className="h-4 w-4 mr-2" />
-                Related Topics
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
+
       <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={formattedTopicName} />
       <WhyLearnSection 
           needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
@@ -431,6 +363,81 @@ const TopicPage = () => {
       <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={formattedTopicName} />
       <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
       <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
+
+      {/* Bottom Navigation Bar - Mobile Only */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
+        <div className="flex justify-between items-center px-1 py-1">
+          <button
+            onClick={() => scrollToSection('introduction')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'introduction' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <BookOpen className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">Intro</span>
+          </button>
+
+          <button
+            onClick={() => scrollToSection('why-learn')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'why-learn' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <ListChecks className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">Why</span>
+          </button>
+
+          <button
+            onClick={() => scrollToSection('roadmap')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'roadmap' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <Map className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">Path</span>
+          </button>
+
+          <button
+            onClick={() => scrollToSection('subtopics')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'subtopics' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <LinkIcon className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">Topics</span>
+          </button>
+
+          <button
+            onClick={() => scrollToSection('key-takeaways')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'key-takeaways' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <Check className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">Key</span>
+          </button>
+
+          <button
+            onClick={() => scrollToSection('faq')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'faq' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <HelpCircle className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">FAQ</span>
+          </button>
+
+          <button
+            onClick={() => scrollToSection('related')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+              activeSection === 'related' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+            } min-w-[3rem]`}
+          >
+            <Link2 className="h-5 w-5" />
+            <span className="text-[0.65rem] mt-0.5">Related</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
