@@ -20,10 +20,12 @@ import {
   Square, 
   HelpCircle, 
   AlertCircle,
-  ChevronDown 
+  ChevronDown,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Skeleton } from "@/components/ui/skeleton";
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 interface Quiz {
@@ -330,11 +332,12 @@ const ProfilePage: React.FC = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  const averageScore = quizHistory.reduce((sum, quiz) => sum + quiz.percentage, 0) / quizHistory.length;
+  // Calculate stats only if quizHistory exists and is not empty
+  const averageScore = quizHistory.length > 0 
+    ? quizHistory.reduce((sum, quiz) => sum + quiz.percentage, 0) / quizHistory.length 
+    : null;
   const totalQuizzes = quizHistory.length;
   const totalTopics = new Set(quizHistory.map(quiz => quiz.topic)).size;
-
-  // Calculate total time spent
   const totalTimeSpent = quizHistory.reduce((sum, quiz) => sum + quiz.timeSpent, 0);
 
   return (
@@ -356,19 +359,35 @@ const ProfilePage: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 my-4">
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">{totalQuizzes}</div>
+                  <div className="text-xl font-semibold">
+                    {isLoading ? <Skeleton className="h-6 w-8" /> : totalQuizzes}
+                  </div>
                   <div className="text-xs text-gray-500">Quizzes Taken</div>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">{Math.round(averageScore)}%</div>
+                  <div className="text-xl font-semibold">
+                    {isLoading ? (
+                      <Skeleton className="h-6 w-12" />
+                    ) : (
+                      averageScore !== null ? `${Math.round(averageScore)}%` : '-'
+                    )}
+                  </div>
                   <div className="text-xs text-gray-500">Average Percentage</div>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">{totalTopics}</div>
+                  <div className="text-xl font-semibold">
+                    {isLoading ? <Skeleton className="h-6 w-8" /> : totalTopics}
+                  </div>
                   <div className="text-xs text-gray-500">Topics</div>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">{formatTime(totalTimeSpent)}</div>
+                  <div className="text-xl font-semibold">
+                    {isLoading ? (
+                      <Skeleton className="h-6 w-16" />
+                    ) : (
+                      formatTime(totalTimeSpent)
+                    )}
+                  </div>
                   <div className="text-xs text-gray-500">Total Time Spent</div>
                 </div>
               </div>
@@ -413,7 +432,18 @@ const ProfilePage: React.FC = () => {
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">Quiz History</h2>
                 
-                {!selectedTopic ? (
+                {isLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[...Array(6)].map((_, i) => (
+                      <Card key={i} className="hover:shadow-md transition-all">
+                        <CardContent className="p-6">
+                          <Skeleton className="h-6 w-32 mb-2" />
+                          <Skeleton className="h-4 w-20" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : !selectedTopic ? (
                   // Show topics list
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {Object.keys(quizzesByTopic).map((topic) => (
@@ -496,203 +526,219 @@ const ProfilePage: React.FC = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold">Quiz Performance</h2>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Score Progression */}
-                  <AnimatedChart className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Score Progression</CardTitle>
-                        <CardDescription>Your learning journey over time</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={scoreProgression}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis domain={[0, 100]} />
-                            <Tooltip />
-                            <Legend />
-                            <Line 
-                              type="monotone" 
-                              dataKey="score" 
-                              stroke="#8884d8" 
-                              name="Quiz Score" 
-                              dot={{ r: 4 }}
-                              activeDot={{ r: 6 }}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="cumulativeAvg" 
-                              stroke="#82ca9d" 
-                              name="Cumulative Average" 
-                              strokeDasharray="5 5"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
-
-                  {/* Score Distribution */}
-                  <AnimatedChart>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Score Distribution</CardTitle>
-                        <CardDescription>How your scores are distributed</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={scoreDistributionData}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="range" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="count" fill="#8884d8" name="Number of Quizzes" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
-
-                  {/* Question Type Distribution */}
-                  <AnimatedChart>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Question Type Distribution</CardTitle>
-                        <CardDescription>Types of questions you've attempted</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={questionTypeData}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={80}
-                              dataKey="value"
-                              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                {isLoading ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {[...Array(6)].map((_, i) => (
+                      <Card key={i} className={i < 2 ? "lg:col-span-2" : ""}>
+                        <CardHeader>
+                          <Skeleton className="h-6 w-48 mb-2" />
+                          <Skeleton className="h-4 w-64" />
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <div className="w-full h-full bg-gray-100 rounded-lg animate-pulse" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Score Progression */}
+                    <AnimatedChart className="lg:col-span-2">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Score Progression</CardTitle>
+                          <CardDescription>Your learning journey over time</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={scoreProgression}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                             >
-                              {questionTypeData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" />
+                              <YAxis domain={[0, 100]} />
+                              <Tooltip />
+                              <Legend />
+                              <Line 
+                                type="monotone" 
+                                dataKey="score" 
+                                stroke="#8884d8" 
+                                name="Quiz Score" 
+                                dot={{ r: 4 }}
+                                activeDot={{ r: 6 }}
+                              />
+                              <Line 
+                                type="monotone" 
+                                dataKey="cumulativeAvg" 
+                                stroke="#82ca9d" 
+                                name="Cumulative Average" 
+                                strokeDasharray="5 5"
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
 
-                  {/* Time vs Score Analysis */}
-                  <AnimatedChart>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Time vs Score Analysis</CardTitle>
-                        <CardDescription>Relationship between time taken and scores</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <ScatterChart
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" dataKey="timeInMinutes" name="Time (minutes)" />
-                            <YAxis type="number" dataKey="score" name="Score" domain={[0, 100]} />
-                            <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                            <Scatter data={timeAnalysis} fill="#8884d8" />
-                          </ScatterChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
+                    {/* Score Distribution */}
+                    <AnimatedChart>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Score Distribution</CardTitle>
+                          <CardDescription>How your scores are distributed</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={scoreDistributionData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="range" />
+                              <YAxis />
+                              <Tooltip />
+                              <Bar dataKey="count" fill="#8884d8" name="Number of Quizzes" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
 
-                  {/* Performance by Question Type */}
-                  <AnimatedChart>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Performance by Question Type</CardTitle>
-                        <CardDescription>Accuracy and time taken for different question types</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={performanceByQuestionTypeData}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="type" />
-                            <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
-                            <YAxis yAxisId="right" orientation="right" />
-                            <Tooltip />
-                            <Legend />
-                            <Bar yAxisId="left" dataKey="accuracy" fill="#8884d8" name="Accuracy (%)" />
-                            <Bar yAxisId="right" dataKey="avgTime" fill="#82ca9d" name="Avg Time (minutes)" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
+                    {/* Question Type Distribution */}
+                    <AnimatedChart>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Question Type Distribution</CardTitle>
+                          <CardDescription>Types of questions you've attempted</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={questionTypeData}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                              >
+                                {questionTypeData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
 
-                  {/* Question Types by Topic */}
-                  <AnimatedChart className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Question Types by Topic</CardTitle>
-                        <CardDescription>Distribution of question types in each topic</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={topicStatsArray}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Bar dataKey="questionTypes.mcq" stackId="a" fill="#0088FE" name="MCQ" />
-                            <Bar dataKey="questionTypes.multiple-correct" stackId="a" fill="#00C49F" name="Multiple Correct" />
-                            <Bar dataKey="questionTypes.true-false" stackId="a" fill="#FFBB28" name="True/False" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
+                    {/* Time vs Score Analysis */}
+                    <AnimatedChart>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Time vs Score Analysis</CardTitle>
+                          <CardDescription>Relationship between time taken and scores</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis type="number" dataKey="timeInMinutes" name="Time (minutes)" />
+                              <YAxis type="number" dataKey="score" name="Score" domain={[0, 100]} />
+                              <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                              <Scatter data={timeAnalysis} fill="#8884d8" />
+                            </ScatterChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
 
-                  {/* Topic Performance Comparison */}
-                  <AnimatedChart className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Topic Performance Comparison</CardTitle>
-                        <CardDescription>Detailed performance metrics across topics</CardDescription>
-                      </CardHeader>
-                      <CardContent className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={topicStatsArray}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
-                            <YAxis yAxisId="right" orientation="right" />
-                            <Tooltip />
-                            <Legend />
-                            <Bar yAxisId="left" dataKey="avgScore" fill="#8884d8" name="Average Score (%)" />
-                            <Bar yAxisId="right" dataKey="quizzes" fill="#82ca9d" name="Number of Quizzes" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </AnimatedChart>
-                </div>
+                    {/* Performance by Question Type */}
+                    <AnimatedChart>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Performance by Question Type</CardTitle>
+                          <CardDescription>Accuracy and time taken for different question types</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={performanceByQuestionTypeData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="type" />
+                              <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
+                              <YAxis yAxisId="right" orientation="right" />
+                              <Tooltip />
+                              <Legend />
+                              <Bar yAxisId="left" dataKey="accuracy" fill="#8884d8" name="Accuracy (%)" />
+                              <Bar yAxisId="right" dataKey="avgTime" fill="#82ca9d" name="Avg Time (minutes)" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
+
+                    {/* Question Types by Topic */}
+                    <AnimatedChart className="lg:col-span-2">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Question Types by Topic</CardTitle>
+                          <CardDescription>Distribution of question types in each topic</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={topicStatsArray}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="name" />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Bar dataKey="questionTypes.mcq" stackId="a" fill="#0088FE" name="MCQ" />
+                              <Bar dataKey="questionTypes.multiple-correct" stackId="a" fill="#00C49F" name="Multiple Correct" />
+                              <Bar dataKey="questionTypes.true-false" stackId="a" fill="#FFBB28" name="True/False" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
+
+                    {/* Topic Performance Comparison */}
+                    <AnimatedChart className="lg:col-span-2">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Topic Performance Comparison</CardTitle>
+                          <CardDescription>Detailed performance metrics across topics</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-60">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={topicStatsArray}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="name" />
+                              <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
+                              <YAxis yAxisId="right" orientation="right" />
+                              <Tooltip />
+                              <Legend />
+                              <Bar yAxisId="left" dataKey="avgScore" fill="#8884d8" name="Average Score (%)" />
+                              <Bar yAxisId="right" dataKey="quizzes" fill="#82ca9d" name="Number of Quizzes" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    </AnimatedChart>
+                  </div>
+                )}
               </div>
             </TabsContent>
             
