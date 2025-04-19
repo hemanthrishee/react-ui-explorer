@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2, Menu, X } from 'lucide-react';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2, Menu, X, Brain } from 'lucide-react';
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import HeroSection from '@/components/HeroSection';
@@ -11,6 +11,15 @@ import SubtopicsSection from '@/components/SubtopicsSection';
 import KeyTakeawaysSection from '@/components/KeyTakeawaysSection';
 import FaqSection from '@/components/FaqSection';
 import RelatedTopicsSection from '@/components/RelatedTopicsSection';
+import { useAuth } from '@/hooks/useAuth';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
+import QuizTypeSelector from '@/components/QuizTypeSelector';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
@@ -75,6 +84,9 @@ const TopicPage = () => {
   const [showHamburger, setShowHamburger] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const { isAuthenticated } = useAuth();
+  const [showQuizDialog, setShowQuizDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -215,6 +227,24 @@ const TopicPage = () => {
         menuButtonRef.current?.classList.remove('reset-state');
       }, 0);
     }
+  };
+
+  const handleGenerateQuiz = () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    setShowQuizDialog(true);
+  };
+
+  const handleQuizConfigSubmit = (quizConfig: any) => {
+    setShowQuizDialog(false);
+    navigate(`/quiz/${topicName}`, { state: { quizConfig } });
+  };
+
+  const handleGoToAuth = () => {
+    setShowAuthDialog(false);
+    navigate('/auth');
   };
 
   if (loading) {
@@ -362,6 +392,47 @@ const TopicPage = () => {
       <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={formattedTopicName} />
       <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
       <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
+
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={handleGenerateQuiz}
+        className="lg:hidden fixed right-4 bottom-20 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-react-primary text-react-secondary shadow-lg hover:bg-react-primary/90 transition-all duration-300 hover:scale-105 active:scale-95"
+        aria-label="Generate Quiz"
+      >
+        <Brain className="h-6 w-6" />
+        <span className="sr-only">Generate Quiz</span>
+      </button>
+
+      {/* Quiz Dialog */}
+      <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Quiz Configuration</DialogTitle>
+            <DialogDescription>
+              Customize your quiz settings
+            </DialogDescription>
+          </DialogHeader>
+          <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={handleQuizConfigSubmit} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Auth Dialog */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Authentication Required</DialogTitle>
+            <DialogDescription>
+              You need to sign in to generate quizzes
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-4">
+            <p className="text-center text-gray-600">Sign in to track your quiz history and progress</p>
+            <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
+              Go to Sign In
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 safe-left safe-right">

@@ -130,7 +130,7 @@ const Header: React.FC = () => {
             <>
               {showQuizButton && (
                 <Button 
-                  className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
+                  className="hidden lg:flex bg-react-primary text-react-secondary hover:bg-react-primary/90"
                   onClick={handleGenerateQuiz}
                 >
                   Generate Quiz
