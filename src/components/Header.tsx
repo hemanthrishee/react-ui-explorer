@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -25,8 +24,9 @@ const Header: React.FC = () => {
   const [showQuizButton, setShowQuizButton] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
+  const isTopicPage = location.pathname.startsWith('/topic/');
+
   useEffect(() => {
-    const isTopicPage = location.pathname.startsWith('/topic/');
     setShowQuizButton(false);
   }, [location.pathname]);
 
@@ -97,22 +97,22 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-react-secondary text-white py-4">
+    <header className={`${isTopicPage ? 'lg:bg-react-secondary bg-white lg:text-white text-react-secondary' : 'bg-react-secondary text-white'} py-4`}>
       <div className="container mx-auto flex items-center justify-between px-4">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+        <div className={`flex items-center gap-2 cursor-pointer ${isTopicPage ? 'lg:text-white text-react-secondary' : 'text-white'}`} onClick={() => navigate('/')}>
           <Code size={24} className="text-react-primary" />
           <span className="text-xl font-bold">LearnFlow</span>
         </div>
         
         <form onSubmit={handleSearch} className="hidden md:flex flex-1 mx-12 max-w-md">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isTopicPage ? 'lg:text-gray-400 text-gray-500' : 'text-gray-400'}`} />
             <Input
               type="text"
               placeholder="Search any technology..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 bg-react-secondary/80 border-gray-600 text-white placeholder:text-gray-400"
+              className={`w-full pl-10 ${isTopicPage ? 'lg:bg-react-secondary/80 lg:border-gray-600 lg:text-white lg:placeholder:text-gray-400 bg-white border-gray-200 text-react-secondary placeholder:text-gray-500' : 'bg-react-secondary/80 border-gray-600 text-white placeholder:text-gray-400'}`}
               disabled={isLoading}
             />
           </div>
@@ -138,7 +138,7 @@ const Header: React.FC = () => {
               )}
               <Button 
                 variant="ghost" 
-                className="text-white hover:text-react-primary"
+                className={`${isTopicPage ? 'lg:text-white text-react-secondary hover:text-react-primary' : 'text-white hover:text-react-primary'}`}
                 onClick={handleGoToProfile}
               >
                 <UserCircle className="h-5 w-5 mr-1" />

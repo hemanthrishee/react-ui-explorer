@@ -346,7 +346,6 @@ const TopicPage = () => {
           </div>
         </div>
       </div>
-
       <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={formattedTopicName} />
       <WhyLearnSection 
           needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
