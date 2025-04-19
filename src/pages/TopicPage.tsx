@@ -491,76 +491,90 @@ const TopicPage = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 safe-left safe-right">
         {/* Bottom Navigation Bar - Mobile Only */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden safe-bottom">
-          <div className="flex justify-between items-center px-1 py-1">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200/50 dark:border-gray-700/50 lg:hidden safe-bottom">
+          <div className="flex justify-between items-center px-3 py-2 max-w-md mx-auto">
             <button
               onClick={() => scrollToSection('introduction')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'introduction' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'introduction' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <BookOpen className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">Intro</span>
+              <BookOpen className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">Intro</span>
             </button>
 
             <button
               onClick={() => scrollToSection('why-learn')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'why-learn' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'why-learn' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <ListChecks className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">Why</span>
+              <ListChecks className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">Why</span>
             </button>
 
             <button
               onClick={() => scrollToSection('roadmap')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'roadmap' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'roadmap' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <Map className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">Path</span>
+              <Map className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">Path</span>
             </button>
 
             <button
               onClick={() => scrollToSection('subtopics')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'subtopics' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'subtopics' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <LinkIcon className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">Topics</span>
+              <LinkIcon className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">Topics</span>
             </button>
 
             <button
               onClick={() => scrollToSection('key-takeaways')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'key-takeaways' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'key-takeaways' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <Check className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">Key</span>
+              <Check className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">Key</span>
             </button>
 
             <button
               onClick={() => scrollToSection('faq')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'faq' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'faq' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <HelpCircle className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">FAQ</span>
+              <HelpCircle className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">FAQ</span>
             </button>
 
             <button
               onClick={() => scrollToSection('related')}
-              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-                activeSection === 'related' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-              } min-w-[3rem]`}
+              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+                activeSection === 'related' 
+                  ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+              }`}
             >
-              <Link2 className="h-5 w-5" />
-              <span className="text-[0.65rem] mt-0.5">Related</span>
+              <Link2 className="h-5 w-5 mb-1" />
+              <span className="text-[0.65rem] font-medium">Related</span>
             </button>
           </div>
         </div>
