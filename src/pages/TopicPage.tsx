@@ -259,8 +259,8 @@ const TopicPage = () => {
   }
 
   return (
-    <div className="flex-grow pb-16 lg:pb-0 relative">
-      <div className="container mx-auto px-4">
+    <div className="flex-grow pb-16 lg:pb-0 relative overflow-x-hidden">
+      <div className="container mx-auto px-4 safe-left safe-right">
         <div className="hidden lg:flex items-center py-2">
           {/* Desktop Back Button */}
           <Button 
@@ -363,78 +363,81 @@ const TopicPage = () => {
       <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
       <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
 
-      {/* Bottom Navigation Bar - Mobile Only */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
-        <div className="flex justify-between items-center px-1 py-1">
-          <button
-            onClick={() => scrollToSection('introduction')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'introduction' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <BookOpen className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">Intro</span>
-          </button>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 safe-left safe-right">
+        {/* Bottom Navigation Bar - Mobile Only */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden safe-bottom">
+          <div className="flex justify-between items-center px-1 py-1">
+            <button
+              onClick={() => scrollToSection('introduction')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'introduction' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <BookOpen className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">Intro</span>
+            </button>
 
-          <button
-            onClick={() => scrollToSection('why-learn')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'why-learn' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <ListChecks className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">Why</span>
-          </button>
+            <button
+              onClick={() => scrollToSection('why-learn')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'why-learn' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <ListChecks className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">Why</span>
+            </button>
 
-          <button
-            onClick={() => scrollToSection('roadmap')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'roadmap' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <Map className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">Path</span>
-          </button>
+            <button
+              onClick={() => scrollToSection('roadmap')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'roadmap' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <Map className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">Path</span>
+            </button>
 
-          <button
-            onClick={() => scrollToSection('subtopics')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'subtopics' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <LinkIcon className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">Topics</span>
-          </button>
+            <button
+              onClick={() => scrollToSection('subtopics')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'subtopics' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <LinkIcon className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">Topics</span>
+            </button>
 
-          <button
-            onClick={() => scrollToSection('key-takeaways')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'key-takeaways' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <Check className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">Key</span>
-          </button>
+            <button
+              onClick={() => scrollToSection('key-takeaways')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'key-takeaways' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <Check className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">Key</span>
+            </button>
 
-          <button
-            onClick={() => scrollToSection('faq')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'faq' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <HelpCircle className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">FAQ</span>
-          </button>
+            <button
+              onClick={() => scrollToSection('faq')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'faq' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <HelpCircle className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">FAQ</span>
+            </button>
 
-          <button
-            onClick={() => scrollToSection('related')}
-            className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
-              activeSection === 'related' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
-            } min-w-[3rem]`}
-          >
-            <Link2 className="h-5 w-5" />
-            <span className="text-[0.65rem] mt-0.5">Related</span>
-          </button>
+            <button
+              onClick={() => scrollToSection('related')}
+              className={`flex flex-col items-center justify-center py-1 px-1 rounded-lg ${
+                activeSection === 'related' ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
+              } min-w-[3rem]`}
+            >
+              <Link2 className="h-5 w-5" />
+              <span className="text-[0.65rem] mt-0.5">Related</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
