@@ -20,6 +20,7 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import QuizTypeSelector from '@/components/QuizTypeSelector';
+import { motion } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
@@ -394,15 +395,67 @@ const TopicPage = () => {
       <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
       <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
 
-      {/* Floating Action Button - Mobile Only */}
-      <button
-        onClick={handleGenerateQuiz}
-        className="lg:hidden fixed right-4 bottom-20 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-react-primary text-react-secondary shadow-lg hover:bg-react-primary/90 transition-all duration-300 hover:scale-105 active:scale-95"
-        aria-label="Generate Quiz"
+      {/* Mobile Floating Action Button */}
+      <motion.div
+        className="lg:hidden fixed right-4 bottom-20 z-50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
       >
-        <Brain className="h-6 w-6" />
-        <span className="sr-only">Generate Quiz</span>
-      </button>
+        <motion.button
+          onClick={handleGenerateQuiz}
+          className="flex items-center justify-center w-16 h-16 rounded-full bg-react-primary text-react-secondary shadow-2xl relative"
+          aria-label="Generate Quiz"
+          whileHover={{ 
+            scale: 1.1,
+            transition: { duration: 0.2 }
+          }}
+          whileTap={{ scale: 0.9 }}
+          animate={{
+            boxShadow: [
+              "0 0 0 0 rgba(97, 218, 251, 0.4)",
+              "0 0 0 20px rgba(97, 218, 251, 0)",
+              "0 0 0 0 rgba(97, 218, 251, 0)"
+            ]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+        >
+          <Brain className="h-8 w-8" />
+          <span className="sr-only">Generate Quiz</span>
+          
+          {/* Pulsing Ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full border-3 border-react-primary"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0, 0.5]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+
+          {/* Additional Glow Effect */}
+          <motion.div
+            className="absolute inset-0 rounded-full bg-react-primary/20 blur-xl"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.1, 0.3]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </motion.button>
+      </motion.div>
 
       {/* Quiz Dialog */}
       <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
