@@ -242,7 +242,7 @@ const ProfilePage: React.FC = () => {
     value
   }));
 
-  // Additional stats calculations
+  // Update score distribution data calculation
   const scoreDistribution = quizHistory.reduce((acc, quiz) => {
     const range = Math.floor(quiz.score / 10) * 10;
     const key = `${range}-${range + 9}`;
@@ -265,26 +265,26 @@ const ProfilePage: React.FC = () => {
     score: quiz.percentage
   }));
 
-  // Stats calculations
+  // Update performance by question type calculation
   const performanceByQuestionType = quizHistory.reduce((acc, quiz) => {
     if (!acc[quiz.question_type]) {
       acc[quiz.question_type] = {
-        total: 0,
-        correct: 0,
+        totalQuestions: 0,
+        correctAnswers: 0,
         time: 0
       };
     }
-    acc[quiz.question_type].total += 1;
-    acc[quiz.question_type].correct += quiz.score;
+    acc[quiz.question_type].totalQuestions += quiz.questions.length;
+    acc[quiz.question_type].correctAnswers += quiz.questions.reduce((sum, q) => sum + (q.isCorrect ? 1 : 0), 0);
     acc[quiz.question_type].time += quiz.timeSpent;
     return acc;
-  }, {} as Record<string, { total: number; correct: number; time: number }>);
+  }, {} as Record<string, { totalQuestions: number; correctAnswers: number; time: number }>);
 
-  // Update the performance by question type data calculation
+  // Update performance by question type data calculation
   const performanceByQuestionTypeData = Object.entries(performanceByQuestionType).map(([type, data]) => ({
     type,
-    accuracy: (data.correct / (data.total * 10)) * 100, // Assuming 10 questions per quiz
-    avgTime: secondsToMinutes(data.time / data.total)
+    accuracy: (data.correctAnswers / data.totalQuestions) * 100,
+    avgTime: secondsToMinutes(data.time / quizHistory.filter(q => q.question_type === type).length)
   }));
 
   // Add score progression data
@@ -596,7 +596,7 @@ const ProfilePage: React.FC = () => {
                             >
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="range" />
-                              <YAxis />
+                              <YAxis domain={[0, 'dataMax']} allowDecimals={false} />
                               <Tooltip />
                               <Bar dataKey="count" fill="#8884d8" name="Number of Quizzes" />
                             </BarChart>
@@ -699,7 +699,7 @@ const ProfilePage: React.FC = () => {
                             >
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="name" />
-                              <YAxis />
+                              <YAxis allowDecimals={false} />
                               <Tooltip />
                               <Legend />
                               <Bar dataKey="questionTypes.mcq" stackId="a" fill="#0088FE" name="MCQ" />
@@ -727,7 +727,7 @@ const ProfilePage: React.FC = () => {
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="name" />
                               <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
-                              <YAxis yAxisId="right" orientation="right" />
+                              <YAxis yAxisId="right" orientation="right" allowDecimals={false} />
                               <Tooltip />
                               <Legend />
                               <Bar yAxisId="left" dataKey="avgScore" fill="#8884d8" name="Average Score (%)" />
