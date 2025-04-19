@@ -249,7 +249,7 @@ const TopicPage = () => {
 
   if (loading) {
     return (
-      <div className="flex-grow flex items-center justify-center mt-4 sm:mt-8 lg:mt-12">
+      <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] safe-top safe-bottom">
         <div className="text-center">
           <Loader2 className="h-16 w-16 animate-spin text-react-primary mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2">Generating content...</h2>
@@ -261,7 +261,7 @@ const TopicPage = () => {
 
   if (error) {
     return (
-      <div className="flex-grow flex items-center justify-center mt-4 sm:mt-8 lg:mt-12">
+      <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] safe-top safe-bottom">
         <div className="text-center max-w-md mx-auto px-4">
           <h2 className="text-2xl font-semibold mb-4 text-red-500">Oops! Something went wrong</h2>
           <p className="mb-6 text-gray-600">{error}</p>
@@ -276,7 +276,7 @@ const TopicPage = () => {
 
   if (!topicData) {
     return (
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] safe-top safe-bottom">
         <div className="text-center">
           <h2 className="text-2xl font-semibold mb-4">No data found</h2>
           <Button onClick={goBack} className="flex items-center gap-2">
