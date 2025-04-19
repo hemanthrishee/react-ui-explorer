@@ -20,7 +20,6 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import QuizTypeSelector from '@/components/QuizTypeSelector';
-import { motion } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
@@ -292,292 +291,390 @@ const TopicPage = () => {
 
   return (
     <div className="flex-grow pb-16 lg:pb-0 relative overflow-x-hidden">
-      <div className="container mx-auto px-4 safe-left safe-right">
-        <div className="hidden lg:flex items-center py-2">
-          {/* Desktop Back Button */}
-          <Button 
-            variant="outline" 
-            onClick={goBack} 
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Search
-          </Button>
+      {/* Desktop Header and Navigation */}
+      <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+        <div className="container mx-auto px-4 safe-left safe-right">
+          <div className="hidden lg:flex items-center justify-between py-3">
+            {/* Desktop Back Button */}
+            <Button 
+              variant="outline" 
+              onClick={goBack} 
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Search
+            </Button>
 
-          {/* Desktop Navigation */}
-          <div className="flex flex-1 flex-wrap justify-end gap-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('introduction')}
-            >
-              <BookOpen className="h-3.5 w-3.5" />
-              Intro
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('why-learn')}
-            >
-              <ListChecks className="h-3.5 w-3.5" />
-              Why Learn
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('roadmap')}
-            >
-              <Map className="h-3.5 w-3.5" />
-              Roadmap
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('subtopics')}
-            >
-              <LinkIcon className="h-3.5 w-3.5" />
-              Topics
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('key-takeaways')}
-            >
-              <Check className="h-3.5 w-3.5" />
-              Takeaways
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('faq')}
-            >
-              <HelpCircle className="h-3.5 w-3.5" />
-              FAQ
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="flex items-center gap-1.5"
-              onClick={() => scrollToSection('related')}
-            >
-              <Link2 className="h-3.5 w-3.5" />
-              Related
-            </Button>
+            {/* Desktop Navigation */}
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'introduction' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('introduction')}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                Intro
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'why-learn' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('why-learn')}
+              >
+                <ListChecks className="h-3.5 w-3.5" />
+                Why Learn
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'roadmap' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('roadmap')}
+              >
+                <Map className="h-3.5 w-3.5" />
+                Roadmap
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'subtopics' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('subtopics')}
+              >
+                <LinkIcon className="h-3.5 w-3.5" />
+                Topics
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'key-takeaways' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('key-takeaways')}
+              >
+                <Check className="h-3.5 w-3.5" />
+                Takeaways
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'faq' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('faq')}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                FAQ
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex items-center gap-1.5 transition-colors ${
+                  activeSection === 'related' 
+                    ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+                onClick={() => scrollToSection('related')}
+              >
+                <Link2 className="h-3.5 w-3.5" />
+                Related
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-      <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={formattedTopicName} />
-      <WhyLearnSection 
-          needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
-          topicName={formattedTopicName} 
-          benefit1Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["heading"]?.toString() || ""}
-          benefit1Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["description"]?.toString() || ""}
-          benefit2Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["heading"]?.toString() || ""}
-          benefit2Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["description"]?.toString() || ""}
-          benefit3Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["heading"]?.toString() || ""}
-          benefit3Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["description"]?.toString() || ""}
-      />
-      <RoadmapSection topicName={formattedTopicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
-      <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={formattedTopicName} />
-      <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={formattedTopicName} />
-      <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
-      <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
 
-      {/* Mobile Floating Action Button */}
-      <motion.div
-        className="lg:hidden fixed right-4 bottom-20 z-50"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-      >
-        <motion.button
-          onClick={handleGenerateQuiz}
-          className="flex items-center justify-center w-16 h-16 rounded-full bg-react-primary text-react-secondary shadow-2xl relative"
-          aria-label="Generate Quiz"
-          whileHover={{ 
-            scale: 1.1,
-            transition: { duration: 0.2 }
-          }}
-          whileTap={{ scale: 0.9 }}
-          animate={{
-            boxShadow: [
-              "0 0 0 0 rgba(97, 218, 251, 0.4)",
-              "0 0 0 20px rgba(97, 218, 251, 0)",
-              "0 0 0 0 rgba(97, 218, 251, 0)"
-            ]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatType: "reverse"
-          }}
-        >
-          <Brain className="h-8 w-8" />
-          <span className="sr-only">Generate Quiz</span>
-          
-          {/* Pulsing Ring */}
-          <motion.div
-            className="absolute inset-0 rounded-full border-3 border-react-primary"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.5, 0, 0.5]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-
-          {/* Additional Glow Effect */}
-          <motion.div
-            className="absolute inset-0 rounded-full bg-react-primary/20 blur-xl"
-            animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.1, 0.3]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        </motion.button>
-      </motion.div>
-
-      {/* Quiz Dialog */}
-      <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Quiz Configuration</DialogTitle>
-            <DialogDescription>
-              Customize your quiz settings
-            </DialogDescription>
-          </DialogHeader>
-          <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={handleQuizConfigSubmit} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Auth Dialog */}
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Authentication Required</DialogTitle>
-            <DialogDescription>
-              You need to sign in to generate quizzes
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 mt-4">
-            <p className="text-center text-gray-600">Sign in to track your quiz history and progress</p>
-            <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
-              Go to Sign In
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm lg:hidden">
+        <div className="container mx-auto px-4 safe-left safe-right">
+          <div className="flex items-center justify-between py-3">
+            <Button 
+              variant="outline" 
+              onClick={goBack} 
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 safe-left safe-right">
-        {/* Bottom Navigation Bar - Mobile Only */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200/50 dark:border-gray-700/50 lg:hidden safe-bottom">
-          <div className="flex justify-between items-center px-3 py-2 max-w-md mx-auto">
+            
             <button
-              onClick={() => scrollToSection('introduction')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              ref={menuButtonRef}
+              onClick={handleMenuToggle}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <div 
+        className={`fixed inset-0 z-40 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col h-full p-4">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={handleMenuToggle}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={() => {
+                scrollToSection('introduction');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'introduction' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <BookOpen className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">Intro</span>
+              <BookOpen className="h-5 w-5" />
+              Introduction
             </button>
-
+            
             <button
-              onClick={() => scrollToSection('why-learn')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              onClick={() => {
+                scrollToSection('why-learn');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'why-learn' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <ListChecks className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">Why</span>
+              <ListChecks className="h-5 w-5" />
+              Why Learn
             </button>
-
+            
             <button
-              onClick={() => scrollToSection('roadmap')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              onClick={() => {
+                scrollToSection('roadmap');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'roadmap' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <Map className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">Path</span>
+              <Map className="h-5 w-5" />
+              Roadmap
             </button>
-
+            
             <button
-              onClick={() => scrollToSection('subtopics')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              onClick={() => {
+                scrollToSection('subtopics');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'subtopics' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <LinkIcon className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">Topics</span>
+              <LinkIcon className="h-5 w-5" />
+              Topics
             </button>
-
+            
             <button
-              onClick={() => scrollToSection('key-takeaways')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              onClick={() => {
+                scrollToSection('key-takeaways');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'key-takeaways' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <Check className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">Key</span>
+              <Check className="h-5 w-5" />
+              Key Takeaways
             </button>
-
+            
             <button
-              onClick={() => scrollToSection('faq')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              onClick={() => {
+                scrollToSection('faq');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'faq' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <HelpCircle className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">FAQ</span>
+              <HelpCircle className="h-5 w-5" />
+              FAQ
             </button>
-
+            
             <button
-              onClick={() => scrollToSection('related')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${
+              onClick={() => {
+                scrollToSection('related');
+                handleMenuToggle();
+              }}
+              className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                 activeSection === 'related' 
                   ? 'text-react-primary bg-react-primary/10 dark:bg-react-primary/20' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
               }`}
             >
-              <Link2 className="h-5 w-5 mb-1" />
-              <span className="text-[0.65rem] font-medium">Related</span>
+              <Link2 className="h-5 w-5" />
+              Related Topics
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 safe-left safe-right pt-4">
+        <HeroSection shortDescription={topicData["Short Description"]?.["Description"]?.toString() || ""} topicName={formattedTopicName} />
+        <WhyLearnSection 
+            needToLearn={topicData[`Need to Learn ${topicName}`]?.["Description"]?.toString() || ""}
+            topicName={formattedTopicName} 
+            benefit1Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["heading"]?.toString() || ""}
+            benefit1Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 1"]?.["description"]?.toString() || ""}
+            benefit2Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["heading"]?.toString() || ""}
+            benefit2Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 2"]?.["description"]?.toString() || ""}
+            benefit3Heading={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["heading"]?.toString() || ""}
+            benefit3Description={topicData[`Need to Learn ${topicName}`]?.["Benefit 3"]?.["description"]?.toString() || ""}
+        />
+        <RoadmapSection topicName={formattedTopicName} prerequisites={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['prerequisites'] || []} levels={topicData[`Road Map to Learn ${topicName}`]?.["Description"]?.['levels'] || []} />
+        <SubtopicsSection subTopics={topicData["SubTopics"]?.["Description"]?.["subtopics"] || []} topicName={formattedTopicName} />
+        <KeyTakeawaysSection keyTakeaways={topicData["Key Takeaways"]?.["Description"] || []} topicName={formattedTopicName} />
+        <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
+        <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
+
+        {/* Mobile Floating Action Button */}
+        <motion.div
+          className="lg:hidden fixed right-4 bottom-20 z-50"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+        >
+          <motion.button
+            onClick={handleGenerateQuiz}
+            className="flex items-center justify-center w-16 h-16 rounded-full bg-react-primary text-react-secondary shadow-2xl relative"
+            aria-label="Generate Quiz"
+            whileHover={{ 
+              scale: 1.1,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.9 }}
+            animate={{
+              boxShadow: [
+                "0 0 0 0 rgba(97, 218, 251, 0.4)",
+                "0 0 0 20px rgba(97, 218, 251, 0)",
+                "0 0 0 0 rgba(97, 218, 251, 0)"
+              ]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+          >
+            <Brain className="h-8 w-8" />
+            <span className="sr-only">Generate Quiz</span>
+            
+            {/* Pulsing Ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full border-3 border-react-primary"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 0, 0.5]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+
+            {/* Additional Glow Effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-react-primary/20 blur-xl"
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.1, 0.3]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </motion.button>
+        </motion.div>
+
+        {/* Quiz Dialog */}
+        <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Quiz Configuration</DialogTitle>
+              <DialogDescription>
+                Customize your quiz settings
+              </DialogDescription>
+            </DialogHeader>
+            <QuizTypeSelector onClose={() => setShowQuizDialog(false)} onSubmit={handleQuizConfigSubmit} />
+          </DialogContent>
+        </Dialog>
+
+        {/* Auth Dialog */}
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Authentication Required</DialogTitle>
+              <DialogDescription>
+                You need to sign in to generate quizzes
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 mt-4">
+              <p className="text-center text-gray-600">Sign in to track your quiz history and progress</p>
+              <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
+                Go to Sign In
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
