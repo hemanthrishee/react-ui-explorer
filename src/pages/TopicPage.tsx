@@ -1,8 +1,7 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2 } from 'lucide-react';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2, Menu, X } from 'lucide-react';
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import HeroSection from '@/components/HeroSection';
@@ -71,6 +70,24 @@ const TopicPage = () => {
   const [topicData, setTopicData] = useState<TopicData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formattedTopicName, setFormattedTopicName] = useState<string>(topicName ? topicName.charAt(0).toUpperCase() + topicName.slice(1) : '');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showHamburger, setShowHamburger] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (navRef.current) {
+        const nav = navRef.current;
+        const isOverflowing = nav.scrollWidth > nav.clientWidth;
+        setShowHamburger(isOverflowing);
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, []);
 
   useEffect(() => {
     fetchTopicData()
@@ -135,6 +152,24 @@ const TopicPage = () => {
     }
   };
 
+  const handleMenuToggle = () => {
+    const newState = !isMobileMenuOpen;
+    setIsMobileMenuOpen(newState);
+    
+    if (newState) {
+      // When opening menu, focus the button
+      menuButtonRef.current?.focus();
+    } else {
+      // When closing menu, remove focus and reset button state
+      menuButtonRef.current?.blur();
+      // Force a re-render of the button by toggling a temporary class
+      menuButtonRef.current?.classList.add('reset-state');
+      setTimeout(() => {
+        menuButtonRef.current?.classList.remove('reset-state');
+      }, 0);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-grow flex items-center justify-center mt-4 sm:mt-8 lg:mt-12">
@@ -178,18 +213,34 @@ const TopicPage = () => {
 
   return (
     <div className="flex-grow">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-wrap items-center justify-between w-full gap-2">
-          <Button 
-            variant="outline" 
-            onClick={goBack} 
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Search
-          </Button>
-          
-          <div className="flex-1 flex flex-wrap justify-end gap-1 sm:justify-between">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-wrap items-start w-full gap-x-2">
+          <div className="flex items-center py-2 w-full lg:w-auto justify-between">
+            <Button 
+              variant="outline" 
+              onClick={goBack} 
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Search
+            </Button>
+            
+            {/* Mobile Menu Button */}
+            <Button
+              ref={menuButtonRef}
+              variant="ghost"
+              size="sm"
+              className="lg:hidden flex items-center gap-2 focus:outline-none focus:ring-0 hover:bg-transparent active:bg-transparent"
+              onClick={handleMenuToggle}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <span className="sr-only">Navigation Menu</span>
+              <span className="text-sm">Menu</span>
+            </Button>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex flex-1 flex-wrap justify-end gap-1 sm:justify-between py-2">
             <Button 
               variant="ghost" 
               size="sm" 
@@ -259,6 +310,108 @@ const TopicPage = () => {
               <Link2 className="h-3.5 w-3.5" />
               Related
             </Button>
+          </div>
+
+          {/* Mobile Navigation Menu */}
+          <div 
+            className={`lg:hidden w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform ${
+              isMobileMenuOpen 
+                ? 'opacity-100 translate-y-0 max-h-[500px] mt-0' 
+                : 'opacity-0 -translate-y-2 pointer-events-none max-h-0 overflow-hidden mt-0 p-0'
+            }`}
+          >
+            <div className={`flex flex-col gap-1 p-2 ${!isMobileMenuOpen && 'hidden'}`}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('introduction');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Introduction
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('why-learn');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <ListChecks className="h-4 w-4 mr-2" />
+                Why Learn
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('roadmap');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <Map className="h-4 w-4 mr-2" />
+                Roadmap
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('subtopics');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <LinkIcon className="h-4 w-4 mr-2" />
+                Topics
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('key-takeaways');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Key Takeaways
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('faq');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <HelpCircle className="h-4 w-4 mr-2" />
+                FAQ
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  scrollToSection('related');
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <Link2 className="h-4 w-4 mr-2" />
+                Related Topics
+              </Button>
+            </div>
           </div>
         </div>
       </div>
