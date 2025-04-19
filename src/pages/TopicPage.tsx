@@ -20,6 +20,7 @@ import {
   DialogDescription
 } from "@/components/ui/dialog";
 import QuizTypeSelector from '@/components/QuizTypeSelector';
+import { motion } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
