@@ -48,6 +48,7 @@ interface TopicData {
         prerequisites: string[];
         levels: Array<{
           name: string;
+          description: string;
           topics: string[];
           howToConquer: string;
           insiderTips: string;

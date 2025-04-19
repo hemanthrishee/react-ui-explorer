@@ -93,11 +93,7 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisite
                   <div>
                     <h3 className="text-xl font-semibold">{level.name}</h3>
                     <p className="text-sm text-gray-500">
-                      {level.name === "Basic Level" 
-                        ? "Fundamentals for beginners" 
-                        : level.name === "Intermediate Level" 
-                          ? "Build real-world applications" 
-                          : "Master advanced concepts"}
+                      {level["description"]}
                     </p>
                   </div>
                 </div>
