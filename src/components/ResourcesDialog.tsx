@@ -208,7 +208,7 @@ const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
 
       {/* Video Player Dialog */}
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+        <DialogContent className="max-w-4xl lg:max-w-6xl max-h-[90vh] p-0">
           {selectedVideo && (
             <div className="w-full">
               <div className="relative aspect-video w-full">
