@@ -601,7 +601,7 @@ const TopicPage = () => {
                   repeatType: "reverse"
                 }}
               >
-                <ExternalLink className="h-6 w-6" />
+                <BookOpen className="h-6 w-6" />
                 <span className="sr-only">Generate Resources</span>
                 
                 {/* Pulsing Ring */}

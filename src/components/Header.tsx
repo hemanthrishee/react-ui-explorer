@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Code, Search, Loader2, UserCircle, Brain, ExternalLink, ChevronDown, X, BookCheck } from 'lucide-react';
+import { Code, Search, Loader2, UserCircle, Brain, BookOpen, ChevronDown, X, BookCheck } from 'lucide-react';
 import { toast } from "sonner";
 import { 
   Dialog,
@@ -259,7 +259,7 @@ const Header: React.FC = () => {
                       Generate Quiz
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleGenerateResources} className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-react-primary/5 focus:bg-react-primary/5">
-                      <ExternalLink className="h-4 w-4 text-react-primary" />
+                      <BookOpen className="h-4 w-4 text-react-primary" />
                       Generate Resources
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -294,7 +294,7 @@ const Header: React.FC = () => {
                       Generate Quiz
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowAuthDialog(true)} className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:bg-react-primary/5 focus:bg-react-primary/5">
-                      <ExternalLink className="h-4 w-4 text-react-primary" />
+                      <BookOpen className="h-4 w-4 text-react-primary" />
                       Generate Resources
                     </DropdownMenuItem>
                   </DropdownMenuContent>
