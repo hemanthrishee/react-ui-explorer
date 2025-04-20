@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2, Menu, X, Brain } from 'lucide-react';
+import { ArrowLeft, Loader2, BookOpen, Map, ListChecks, HelpCircle, LinkIcon, Check, Link2, Menu, X, Brain, ExternalLink, ChevronDown, Plus } from 'lucide-react';
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import HeroSection from '@/components/HeroSection';
@@ -17,10 +17,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogClose
 } from "@/components/ui/dialog";
 import QuizTypeSelector from '@/components/QuizTypeSelector';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
@@ -89,6 +96,14 @@ const TopicPage = () => {
   const { isAuthenticated } = useAuth();
   const [showQuizDialog, setShowQuizDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showTopicResourcesDialog, setShowTopicResourcesDialog] = useState(false);
+  const [topicVideos, setTopicVideos] = useState<any[]>([]);
+  const [topicArticles, setTopicArticles] = useState<any[]>([]);
+  const [topicDocumentation, setTopicDocumentation] = useState<any[]>([]);
+  const [loadingTopicVideos, setLoadingTopicVideos] = useState(false);
+  const [loadingTopicArticles, setLoadingTopicArticles] = useState(false);
+  const [loadingTopicDocumentation, setLoadingTopicDocumentation] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     const checkOverflow = () => {
@@ -249,6 +264,89 @@ const TopicPage = () => {
     navigate('/auth');
   };
 
+  const handleGenerateTopicResources = async () => {
+    if (!isAuthenticated) {
+      setShowAuthDialog(true);
+      return;
+    }
+    setShowTopicResourcesDialog(true);
+    
+    // Reset states
+    setTopicVideos([]);
+    setTopicArticles([]);
+    setTopicDocumentation([]);
+    setLoadingTopicVideos(true);
+    setLoadingTopicArticles(true);
+    setLoadingTopicDocumentation(true);
+
+    const requestBody = {
+      topic_name: topicName
+    };
+
+    // Load videos
+    fetch(API_URL + '/gemini-search/generate-topic-videos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(requestBody),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.videos) setTopicVideos(data.videos);
+    })
+    .catch(error => {
+      console.error('Error loading videos:', error);
+      toast.error('Failed to load videos');
+    })
+    .finally(() => {
+      setLoadingTopicVideos(false);
+    });
+
+    // Load articles
+    fetch(API_URL + '/gemini-search/generate-topic-articles', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(requestBody),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.articles) setTopicArticles(data.articles);
+    })
+    .catch(error => {
+      console.error('Error loading articles:', error);
+      toast.error('Failed to load articles');
+    })
+    .finally(() => {
+      setLoadingTopicArticles(false);
+    });
+
+    // Load documentation
+    fetch(API_URL + '/gemini-search/generate-topic-documentation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(requestBody),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.documentation) setTopicDocumentation(data.documentation);
+    })
+    .catch(error => {
+      console.error('Error loading documentation:', error);
+      toast.error('Failed to load documentation');
+    })
+    .finally(() => {
+      setLoadingTopicDocumentation(false);
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] safe-top safe-bottom">
@@ -375,6 +473,26 @@ const TopicPage = () => {
               <Link2 className="h-3.5 w-3.5" />
               Related
             </Button>
+
+            {/* Desktop Generate Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-1.5">
+                  Generate
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleGenerateQuiz} className="flex items-center gap-2">
+                  <Brain className="h-4 w-4" />
+                  Generate Quiz
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleGenerateTopicResources} className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Generate Content
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -395,17 +513,133 @@ const TopicPage = () => {
       <FaqSection topicName={formattedTopicName} frequentlyAskedQuestions={topicData["Frequently Asked Questions"]?.["Description"] || []} />
       <RelatedTopicsSection topicName={formattedTopicName} relatedTopics={topicData["Related Topics"]?.["Description"] || []} />
 
-      {/* Mobile Floating Action Button */}
+      {/* Mobile Floating Action Buttons */}
       <motion.div
-        className="lg:hidden fixed right-4 bottom-20 z-50"
+        className="lg:hidden fixed right-4 bottom-20 z-50 flex flex-col items-end gap-2"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
       >
+        {/* Drop-up Menu */}
+        <AnimatePresence>
+          {showMobileMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-2 mb-2"
+            >
+              {/* Quiz Button */}
+              <motion.button
+                onClick={handleGenerateQuiz}
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-react-primary text-react-secondary shadow-xl relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    "0 0 0 0 rgba(97, 218, 251, 0.4)",
+                    "0 0 0 10px rgba(97, 218, 251, 0)",
+                    "0 0 0 0 rgba(97, 218, 251, 0)"
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }}
+              >
+                <Brain className="h-6 w-6" />
+                <span className="sr-only">Generate Quiz</span>
+                
+                {/* Pulsing Ring */}
+                <motion.div
+                  className="absolute inset-0 rounded-full border-2 border-react-primary"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0, 0.5]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+
+                {/* Additional Glow Effect */}
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-react-primary/20 blur-sm"
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: [0.3, 0.1, 0.3]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </motion.button>
+
+              {/* Resources Button */}
+              <motion.button
+                onClick={handleGenerateTopicResources}
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-react-primary text-react-secondary shadow-xl relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    "0 0 0 0 rgba(97, 218, 251, 0.4)",
+                    "0 0 0 10px rgba(97, 218, 251, 0)",
+                    "0 0 0 0 rgba(97, 218, 251, 0)"
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }}
+              >
+                <ExternalLink className="h-6 w-6" />
+                <span className="sr-only">Generate Resources</span>
+                
+                {/* Pulsing Ring */}
+                <motion.div
+                  className="absolute inset-0 rounded-full border-2 border-react-primary"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0, 0.5]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+
+                {/* Additional Glow Effect */}
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-react-primary/20 blur-sm"
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: [0.3, 0.1, 0.3]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Main Generate Button */}
         <motion.button
-          onClick={handleGenerateQuiz}
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
           className="flex items-center justify-center w-16 h-16 rounded-full bg-react-primary text-react-secondary shadow-2xl relative"
-          aria-label="Generate Quiz"
+          aria-label="Generate"
           whileHover={{ 
             scale: 1.1,
             transition: { duration: 0.2 }
@@ -424,8 +658,8 @@ const TopicPage = () => {
             repeatType: "reverse"
           }}
         >
-          <Brain className="h-8 w-8" />
-          <span className="sr-only">Generate Quiz</span>
+          <Plus className="h-8 w-8" />
+          <span className="sr-only">Generate</span>
           
           {/* Pulsing Ring */}
           <motion.div
@@ -484,6 +718,150 @@ const TopicPage = () => {
             <Button onClick={handleGoToAuth} className="bg-react-primary text-react-secondary hover:bg-react-primary/90">
               Go to Sign In
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Topic Resources Dialog */}
+      <Dialog open={showTopicResourcesDialog} onOpenChange={setShowTopicResourcesDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800">
+            <div className="flex items-start justify-between">
+              <div className="max-w-[calc(100%-3rem)]">
+                <DialogTitle>Learning Resources for {formattedTopicName}</DialogTitle>
+                <DialogDescription>
+                  Curated resources to help you master this topic
+                </DialogDescription>
+              </div>
+              <DialogClose asChild>
+                <Button variant="ghost" size="icon" className="-mt-1">
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogClose>
+            </div>
+          </div>
+          <div className="space-y-4 mt-4">
+            {/* Videos Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Videos</h3>
+              {loadingTopicVideos ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[1, 2].map((_, index) => (
+                    <div key={index} className="flex flex-col bg-gray-50 rounded-lg overflow-hidden animate-pulse">
+                      <div className="relative aspect-video bg-gray-200">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
+                            <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-3 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-8 bg-gray-200 rounded mt-2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : topicVideos.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {topicVideos.map((video, index) => (
+                    <div key={index} className="flex flex-col bg-gray-50 rounded-lg overflow-hidden">
+                      <div className="relative aspect-video">
+                        <img 
+                          src={video.thumbnail} 
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          {video.duration}
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <p className="font-medium text-sm line-clamp-2 mb-2">{video.title}</p>
+                        <Button variant="outline" size="sm" className="w-full" asChild>
+                          <a href={video.url} target="_blank" rel="noopener noreferrer">
+                            Watch Video
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No videos available</p>
+              )}
+            </div>
+
+            {/* Articles Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Articles & Tutorials</h3>
+              {loadingTopicArticles ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {[1, 2, 3].map((_, index) => (
+                    <div key={index} className="flex flex-col bg-gray-50 rounded-lg p-4 animate-pulse">
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/4 mt-2"></div>
+                        <div className="h-8 bg-gray-200 rounded mt-2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : topicArticles.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {topicArticles.map((article, index) => (
+                    <div key={index} className="flex flex-col bg-gray-50 rounded-lg p-4">
+                      <p className="font-medium text-sm line-clamp-2">{article.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">Read time: {article.readTime}</p>
+                      <Button variant="outline" size="sm" className="mt-2 w-full" asChild>
+                        <a href={article.url} target="_blank" rel="noopener noreferrer">
+                          Read Article
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No articles available</p>
+              )}
+            </div>
+
+            {/* Documentation Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Documentation</h3>
+              {loadingTopicDocumentation ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {[1, 2].map((_, index) => (
+                    <div key={index} className="flex flex-col bg-gray-50 rounded-lg p-4 animate-pulse">
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/4 mt-2"></div>
+                        <div className="h-8 bg-gray-200 rounded mt-2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : topicDocumentation.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {topicDocumentation.map((doc, index) => (
+                    <div key={index} className="flex flex-col bg-gray-50 rounded-lg p-4">
+                      <p className="font-medium text-sm line-clamp-2">{doc.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">Type: {doc.type}</p>
+                      <Button variant="outline" size="sm" className="mt-2 w-full" asChild>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                          View Documentation
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No documentation available</p>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
