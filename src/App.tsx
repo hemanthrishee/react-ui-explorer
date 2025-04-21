@@ -11,6 +11,7 @@ import TopicPage from '@/pages/TopicPage';
 import QuizPage from '@/pages/QuizPage';
 import AuthPage from '@/pages/AuthPage';
 import ProfilePage from '@/pages/ProfilePage';
+import CodingPracticePage from '@/pages/CodingPracticePage';
 import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthContext';
 import './App.css';
@@ -42,6 +43,7 @@ function App() {
                   <Route path="/quiz/:topic" element={<QuizPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/coding-practice" element={<CodingPracticePage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
