@@ -25,7 +25,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
         onClose();
       }
     }}>
-      <DialogContent className="w-[98vw] sm:w-[95vw] md:w-[85vw] lg:max-w-4xl xl:max-w-6xl h-[35vh] sm:h-[45vh] md:h-[55vh] lg:h-[65vh] p-0 flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[70vh] lg:max-w-4xl lg:max-h-[90vh] p-0 flex flex-col">
         {document && (
           <div className="flex flex-col h-full">
             <div className="p-3 sm:p-4 border-b flex-shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
