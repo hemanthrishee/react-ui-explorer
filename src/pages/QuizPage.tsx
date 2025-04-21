@@ -92,9 +92,17 @@ const QuizPage: React.FC = () => {
   useEffect(() => {
       if (topic) {
         getQuizByTopic(topic, quizConfig.quizType, quizConfig.questionCount, subTopic).then(quiz => {
-          setQuizData({
+          // Ensure each question has the correct type and structure
+          const typedQuiz = {
             ...quiz,
-          });
+            questions: quiz.questions.map(q => ({
+              ...q,
+              type: quizConfig.quizType,
+              correct_answers: Array.isArray(q.correct_answers) ? q.correct_answers : [],
+              options: Array.isArray(q.options) ? q.options : []
+            }))
+          };
+          setQuizData(typedQuiz);
           
           const initialAnswers: Record<string, number[]> = {};
           quiz.questions.forEach((q, index) => {
@@ -203,7 +211,7 @@ const QuizPage: React.FC = () => {
     }
     
     if (question.type === 'mcq' || question.type === 'true-false') {
-      const isCorrect = userAnswers.length === 1 && userAnswers[0] === question.correctAnswers[0];
+      const isCorrect = userAnswers.length === 1 && userAnswers[0] === question.correct_answers[0];
       
       if (isCorrect) {
         return { score: 4, isCorrect: true };
@@ -214,32 +222,33 @@ const QuizPage: React.FC = () => {
       }
     } else if (question.type === 'multiple-correct') {
       const correctAnswersSelected = userAnswers.filter(answer => 
-        question.correctAnswers.includes(answer)
+        question.correct_answers.includes(answer)
       ).length;
       
       const incorrectAnswersSelected = userAnswers.filter(answer => 
-        !question.correctAnswers.includes(answer)
+        !question.correct_answers.includes(answer)
       ).length;
       
-      const allCorrect = correctAnswersSelected === question.correctAnswers.length && incorrectAnswersSelected === 0;
+      // If any incorrect option is selected, score is -2
+      if (incorrectAnswersSelected > 0) {
+        return { score: -2, isCorrect: false };
+      }
       
-      const partiallyCorrect = correctAnswersSelected > 0 && correctAnswersSelected < question.correctAnswers.length && incorrectAnswersSelected === 0;
-      
-      const anyIncorrect = incorrectAnswersSelected > 0;
-      
-      if (allCorrect) {
+      // If all correct answers are selected, score is +4
+      if (correctAnswersSelected === question.correct_answers.length) {
         return { score: 4, isCorrect: true };
-      } else if (partiallyCorrect) {
+      }
+      
+      // Partial marking: +1 for each correct answer selected
+      if (correctAnswersSelected > 0) {
         return { 
           score: correctAnswersSelected, 
           isCorrect: false,
           partiallyCorrect: true
         };
-      } else if (anyIncorrect && quizConfig.negativeMarking) {
-        return { score: -2, isCorrect: false };
-      } else {
-        return { score: 0, isCorrect: false };
       }
+      
+      return { score: 0, isCorrect: false };
     }
     
     return { score: 0, isCorrect: false };
@@ -461,7 +470,7 @@ const QuizPage: React.FC = () => {
   }
   
   const currentQuestion = quizData.questions[activeQuestionIndex];
-  const isMultipleCorrect = currentQuestion.type === 'multiple-correct';
+  const isMultipleCorrect = quizConfig.quizType === 'multiple-correct';
   const userAnswers = selectedAnswers[activeQuestionIndex] || [];
   const currentQuestionRemainingTime = questionTimers[activeQuestionIndex] || timePerQuestion;
   
@@ -721,9 +730,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   const [showExplanations, setShowExplanations] = useState<boolean>(true);
   
   const totalPoints = Object.values(questionResults).reduce((sum, result) => sum + result.score, 0);
-  
   const maxPossiblePoints = quizData.questions.length * 4;
-  
   const scorePercentage = Math.round((totalPoints / maxPossiblePoints) * 100);
 
   const navigate = useNavigate();
@@ -739,7 +746,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
       <div className="w-full mb-4">
         <Button 
           variant="default" 
-          onClick={() => navigate(`/topic/${topic}`)}
+          onClick={onReturnToTopic}
           className="w-full"
         >
           Return to Topic
@@ -825,40 +832,101 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                   <div className="mt-3 space-y-2">
                     {question.options.map((option, optIdx) => {
                       const isUserSelected = userAnswers.includes(optIdx);
-                      const isCorrectOption = question.correctAnswers.includes(optIdx);
+                      const isCorrectOption = (question.correct_answers || []).includes(optIdx);
                       
                       let className = "pl-2 py-1 border-l-2 ";
+                      let icon = null;
+                      let status = '';
                       
-                      if (isUserSelected && isCorrectOption) {
-                        className += "border-green-500 bg-green-100";
-                      } else if (isUserSelected && !isCorrectOption) {
-                        className += "border-red-500 bg-red-100";
-                      } else if (!isUserSelected && isCorrectOption) {
-                        className += "border-amber-500 bg-amber-100";
+                      if (question.type === 'multiple-correct') {
+                        if (isCorrectOption) {
+                          if (isUserSelected) {
+                            icon = <CheckSquare className="h-4 w-4 text-green-600 mt-0.5" />;
+                            className += "border-green-500 bg-green-100";
+                            status = 'Correctly selected';
+                          } else {
+                            icon = <Square className="h-4 w-4 text-amber-600 mt-0.5" />;
+                            className += "border-amber-500 bg-amber-100";
+                            status = 'Missed correct answer';
+                          }
+                        } else {
+                          if (isUserSelected) {
+                            icon = <CheckSquare className="h-4 w-4 text-red-600 mt-0.5" />;
+                            className += "border-red-500 bg-red-100";
+                            status = 'Incorrectly selected';
+                          } else {
+                            icon = <Square className="h-4 w-4 text-slate-400 mt-0.5" />;
+                            className += "border-transparent";
+                          }
+                        }
                       } else {
-                        className += "border-transparent";
+                        if (isCorrectOption) {
+                          if (isUserSelected) {
+                            icon = (
+                              <div className="relative flex h-4 w-4 items-center justify-center">
+                                <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                              </div>
+                            );
+                            className += "border-green-500 bg-green-100";
+                            status = 'Correct answer';
+                          } else {
+                            icon = (
+                              <div className="relative flex h-4 w-4 items-center justify-center">
+                                <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+                              </div>
+                            );
+                            className += "border-amber-500 bg-amber-100";
+                            status = 'Missed correct answer';
+                          }
+                        } else {
+                          if (isUserSelected) {
+                            icon = (
+                              <div className="relative flex h-4 w-4 items-center justify-center">
+                                <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                              </div>
+                            );
+                            className += "border-red-500 bg-red-100";
+                            status = 'Incorrect answer';
+                          } else {
+                            icon = (
+                              <div className="relative flex h-4 w-4 items-center justify-center">
+                                <div className="h-3 w-3 rounded-full bg-slate-200"></div>
+                              </div>
+                            );
+                            className += "border-transparent";
+                          }
+                        }
                       }
                       
                       return (
                         <div key={`${idx}-option-${optIdx}`} className={className}>
                           <div className="flex items-start gap-2">
-                            {question.type === 'multiple-correct' ? (
-                              isCorrectOption ? (
-                                <CheckSquare className="h-4 w-4 text-green-600 mt-0.5" />
-                              ) : (
-                                <Square className="h-4 w-4 text-slate-400 mt-0.5" />
-                              )
-                            ) : (
-                              <div className="relative flex h-4 w-4 items-center justify-center">
-                                <div className={`h-3 w-3 rounded-full ${isCorrectOption ? 'bg-green-500' : 'bg-slate-200'}`}></div>
-                              </div>
-                            )}
-                            <span>{option}</span>
+                            {icon}
+                            <div className="flex-1">
+                              <span>{option}</span>
+                              {status && (
+                                <span className="ml-2 text-xs text-muted-foreground">
+                                  ({status})
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
+                  
+                  {result.partiallyCorrect && (
+                    <div className="mt-2 text-sm text-amber-600">
+                      Partial marks awarded: +{result.score} for selecting {result.score} correct option{result.score > 1 ? 's' : ''}
+                    </div>
+                  )}
+                  
+                  {!result.isCorrect && !result.partiallyCorrect && result.score < 0 && (
+                    <div className="mt-2 text-sm text-red-600">
+                      Negative marking: {result.score} points for selecting incorrect option{result.score < -1 ? 's' : ''}
+                    </div>
+                  )}
                   
                   {showExplanations && question.explanation && (
                     <div className="mt-4 text-sm bg-white p-3 rounded border border-slate-200">
