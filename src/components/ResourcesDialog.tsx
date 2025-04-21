@@ -8,7 +8,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, ExternalLink } from 'lucide-react';
+import DocumentViewer from './DocumentViewer';
 
 interface ResourcesDialogProps {
   isOpen: boolean;
@@ -30,6 +31,18 @@ interface Video {
   thumbnail?: string;
 }
 
+interface Document {
+  url: string;
+  title: string;
+  type: string;
+}
+
+interface Article {
+  url: string;
+  title: string;
+  readTime: string;
+}
+
 const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -44,6 +57,9 @@ const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
 }) => {
   const [videoErrors, setVideoErrors] = useState<{[key: string]: boolean}>({});
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [isContentBlocked, setIsContentBlocked] = useState(false);
 
   const getYouTubeVideoId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -53,6 +69,14 @@ const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
 
   const handleVideoError = (videoId: string) => {
     setVideoErrors(prev => ({ ...prev, [videoId]: true }));
+  };
+
+  const handleIframeError = () => {
+    setIsContentBlocked(true);
+  };
+
+  const handleViewInNewTab = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -155,10 +179,13 @@ const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
                     <div key={index} className="flex flex-col bg-gray-50 rounded-lg p-4">
                       <p className="font-medium text-sm line-clamp-2">{article.title}</p>
                       <p className="text-xs text-gray-500 mt-1">Read time: {article.readTime}</p>
-                      <Button variant="outline" size="sm" className="mt-2 w-full" asChild>
-                        <a href={article.url} target="_blank" rel="noopener noreferrer">
-                          Read Article
-                        </a>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2 w-full"
+                        onClick={() => setSelectedArticle(article)}
+                      >
+                        Read Article
                       </Button>
                     </div>
                   ))}
@@ -190,10 +217,13 @@ const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
                     <div key={index} className="flex flex-col bg-gray-50 rounded-lg p-4">
                       <p className="font-medium text-sm line-clamp-2">{doc.title}</p>
                       <p className="text-xs text-gray-500 mt-1">Type: {doc.type}</p>
-                      <Button variant="outline" size="sm" className="mt-2 w-full" asChild>
-                        <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                          View Documentation
-                        </a>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-2 w-full"
+                        onClick={() => setSelectedDocument(doc)}
+                      >
+                        View Documentation
                       </Button>
                     </div>
                   ))}
@@ -228,6 +258,67 @@ const ResourcesDialog: React.FC<ResourcesDialogProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Article Viewer Dialog */}
+      <Dialog open={!!selectedArticle} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedArticle(null);
+          setIsContentBlocked(false);
+        }
+      }}>
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:w-[80vw] lg:max-w-4xl xl:max-w-6xl h-[90vh] p-0 flex flex-col">
+          {selectedArticle && (
+            <div className="flex flex-col h-full">
+              <div className="p-3 sm:p-4 border-b flex-shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base sm:text-lg font-semibold truncate">{selectedArticle.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1">Read time: {selectedArticle.readTime}</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleViewInNewTab(selectedArticle.url)}
+                  className="flex items-center gap-2 w-full sm:w-auto"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="hidden sm:inline">View in new tab</span>
+                  <span className="sm:hidden">Open</span>
+                </Button>
+              </div>
+              <div className="flex-1 min-h-0">
+                {isContentBlocked ? (
+                  <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                    <p className="text-gray-500 mb-4">This content cannot be embedded. Please view it in a new tab.</p>
+                    <Button 
+                      variant="default"
+                      onClick={() => handleViewInNewTab(selectedArticle.url)}
+                      className="flex items-center gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open in new tab
+                    </Button>
+                  </div>
+                ) : (
+                  <iframe
+                    src={selectedArticle.url}
+                    title={selectedArticle.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    onError={handleIframeError}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Viewer */}
+      <DocumentViewer 
+        document={selectedDocument}
+        onClose={() => setSelectedDocument(null)}
+      />
     </>
   );
 };
