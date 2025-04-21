@@ -1,4 +1,3 @@
-
 export type QuizQuestionType = 'mcq' | 'true-false' | 'multiple-correct';
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 export interface QuizQuestion {
@@ -6,7 +5,7 @@ export interface QuizQuestion {
   type: QuizQuestionType;
   question: string;
   options: string[];
-  correctAnswers: number[];
+  correct_answers: number[];
   explanation?: string;
 }
 
