@@ -659,7 +659,14 @@ const TopicPage = () => {
             repeatType: "reverse"
           }}
         >
-          <Plus className="h-8 w-8" />
+          <motion.div
+            animate={{
+              rotate: showMobileMenu ? 135 : 0,
+              transition: { duration: 0.2 }
+            }}
+          >
+            <Plus className="h-8 w-8" />
+          </motion.div>
           <span className="sr-only">Generate</span>
           
           {/* Pulsing Ring */}
