@@ -28,7 +28,6 @@ interface RoadmapSectionProps {
 
 const RoadmapSection: React.FC<RoadmapSectionProps> = ({ topicName, prerequisites, levels }) => {
   const [expandedLevel, setExpandedLevel] = useState<string | null>("Basic Level");
-  console.log(prerequisites)
   
   const handleLevelClick = (levelName: string) => {
     setExpandedLevel(expandedLevel === levelName ? null : levelName);
