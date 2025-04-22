@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { java } from '@codemirror/lang-java';
+import { cpp } from '@codemirror/lang-cpp';
+import { autocompletion } from '@codemirror/autocomplete';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -47,6 +53,20 @@ const CodingPracticePage = () => {
     actual: string;
     passed: boolean;
   }> | null>(null);
+  const [language, setLanguage] = useState('javascript');
+
+  const getExtensions = () => {
+    switch(language) {
+      case 'python':
+        return [python(), autocompletion()];
+      case 'java':
+        return [java(), autocompletion()];
+      case 'cpp':
+        return [cpp(), autocompletion()];
+      default:
+        return [javascript(), autocompletion()];
+    }
+  };
 
   const handleRun = () => {
     // Simulate running test cases
@@ -192,7 +212,11 @@ const CodingPracticePage = () => {
                   Submit
                 </Button>
               </div>
-              <select className="border rounded px-2 py-1 text-sm">
+              <select
+                className="border rounded px-2 py-1 text-sm"
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+              >
                 <option value="javascript">JavaScript</option>
                 <option value="python">Python</option>
                 <option value="java">Java</option>
@@ -200,11 +224,15 @@ const CodingPracticePage = () => {
               </select>
             </div>
             
-            <textarea
+            <CodeMirror
               value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="w-full h-96 font-mono p-4 bg-gray-900 text-white rounded-lg"
-              style={{ tabSize: 2 }}
+              height="24rem"
+              theme="dark"
+              extensions={getExtensions()}
+              onChange={(value) => setCode(value)}
+              basicSetup={{ lineNumbers: true, autocompletion: true }}
+              className="editor-left-align"
+              style={{ borderRadius: '0.5rem', fontSize: '1rem', textAlign: 'left' }}
             />
           </Card>
 
