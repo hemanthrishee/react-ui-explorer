@@ -1,283 +1,506 @@
-import React, { useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { java } from '@codemirror/lang-java';
-import { cpp } from '@codemirror/lang-cpp';
-import { autocompletion } from '@codemirror/autocomplete';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Send, CheckCircle, XCircle, Code, BookOpen, MessageSquare, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
+import { CodeEditor } from '@/components/CodeEditor';
+import { CodeRunner } from '@/components/CodeRunner';
+import { TestCase } from '@/components/TestCase';
+import { ChevronLeft, ChevronRight, Play, Check, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-// Sample question data
-const sampleQuestion = {
-  title: "Two Sum",
-  difficulty: "Easy",
-  description: `Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
-
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-You can return the answer in any order.`,
-  examples: [
-    {
-      input: "nums = [2,7,11,15], target = 9",
-      output: "[0,1]",
-      explanation: "Because nums[0] + nums[1] == 9, we return [0, 1]."
-    },
-    {
-      input: "nums = [3,2,4], target = 6",
-      output: "[1,2]",
-      explanation: "Because nums[1] + nums[2] == 6, we return [1, 2]."
-    }
-  ],
-  constraints: [
-    "2 <= nums.length <= 10^4",
-    "-10^9 <= nums[i] <= 10^9",
-    "-10^9 <= target <= 10^9",
-    "Only one valid answer exists."
-  ]
-};
-
-const CodingPracticePage = () => {
-  const [code, setCode] = useState(`function twoSum(nums, target) {
-    // Your code here
-};`);
-  const [activeTab, setActiveTab] = useState('description');
-  const [testResults, setTestResults] = useState<Array<{
+interface Challenge {
+  id: string;
+  title: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  description: string;
+  starterCode: string;
+  language: string;
+  testCases: {
     input: string;
-    expected: string;
-    actual: string;
-    passed: boolean;
-  }> | null>(null);
-  const [language, setLanguage] = useState('javascript');
+    expectedOutput: string;
+    explanation?: string;
+  }[];
+  constraints: string[];
+  hints: string[];
+}
 
-  const getExtensions = () => {
-    switch(language) {
-      case 'python':
-        return [python(), autocompletion()];
-      case 'java':
-        return [java(), autocompletion()];
-      case 'cpp':
-        return [cpp(), autocompletion()];
-      default:
-        return [javascript(), autocompletion()];
+const sampleChallenges: Challenge[] = [
+  {
+    id: '1',
+    title: 'Two Sum',
+    difficulty: 'Easy',
+    description: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.',
+    starterCode: 'function twoSum(nums, target) {\n  // Write your code here\n\n  return [];\n}',
+    language: 'javascript',
+    testCases: [
+      {
+        input: 'nums = [2,7,11,15], target = 9',
+        expectedOutput: '[0,1]',
+        explanation: 'Because nums[0] + nums[1] == 9, we return [0, 1].'
+      },
+      {
+        input: 'nums = [3,2,4], target = 6',
+        expectedOutput: '[1,2]',
+        explanation: 'Because nums[1] + nums[2] == 6, we return [1, 2].'
+      },
+      {
+        input: 'nums = [3,3], target = 6',
+        expectedOutput: '[0,1]',
+        explanation: 'Because nums[0] + nums[1] == 6, we return [0, 1].'
+      }
+    ],
+    constraints: [
+      '2 <= nums.length <= 10^4',
+      '-10^9 <= nums[i] <= 10^9',
+      '-10^9 <= target <= 10^9',
+      'Only one valid answer exists.'
+    ],
+    hints: [
+      'Try using a hash map to store the values you\'ve seen so far.',
+      'For each element, check if its complement (target - current) exists in the map.'
+    ]
+  },
+  {
+    id: '2',
+    title: 'Reverse String',
+    difficulty: 'Easy',
+    description: 'Write a function that reverses a string. The input string is given as an array of characters s.\n\nYou must do this by modifying the input array in-place with O(1) extra memory.',
+    starterCode: 'function reverseString(s) {\n  // Write your code here\n\n  return s;\n}',
+    language: 'javascript',
+    testCases: [
+      {
+        input: 's = ["h","e","l","l","o"]',
+        expectedOutput: '["o","l","l","e","h"]',
+        explanation: 'After reversing, the array becomes ["o","l","l","e","h"].'
+      },
+      {
+        input: 's = ["H","a","n","n","a","h"]',
+        expectedOutput: '["h","a","n","n","a","H"]',
+        explanation: 'After reversing, the array becomes ["h","a","n","n","a","H"].'
+      }
+    ],
+    constraints: [
+      '1 <= s.length <= 10^5',
+      's[i] is a printable ascii character.',
+      'You need to do this in-place, without allocating extra space.'
+    ],
+    hints: [
+      'Use two pointers approach, one at the start and one at the end.',
+      'Swap characters while moving pointers towards the center.'
+    ]
+  },
+  {
+    id: '3',
+    title: 'Fizz Buzz',
+    difficulty: 'Easy',
+    description: 'Given an integer n, return a string array answer (1-indexed) where:\n\n- answer[i] == "FizzBuzz" if i is divisible by 3 and 5.\n- answer[i] == "Fizz" if i is divisible by 3.\n- answer[i] == "Buzz" if i is divisible by 5.\n- answer[i] == i (as a string) if none of the above conditions are true.',
+    starterCode: 'function fizzBuzz(n) {\n  // Write your code here\n\n  return [];\n}',
+    language: 'javascript',
+    testCases: [
+      {
+        input: 'n = 3',
+        expectedOutput: '["1","2","Fizz"]',
+        explanation: ''
+      },
+      {
+        input: 'n = 5',
+        expectedOutput: '["1","2","Fizz","4","Buzz"]',
+        explanation: ''
+      },
+      {
+        input: 'n = 15',
+        expectedOutput: '["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz"]',
+        explanation: ''
+      }
+    ],
+    constraints: [
+      '1 <= n <= 10^4'
+    ],
+    hints: [
+      'Use the modulo operator (%) to check for divisibility.',
+      'Check for divisibility by both 3 and 5 first, then check for 3 and 5 separately.'
+    ]
+  }
+];
+
+const CodingPracticePage: React.FC = () => {
+  const [challenges] = useState<Challenge[]>(sampleChallenges);
+  const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null);
+  const [currentCode, setCurrentCode] = useState<string>('');
+  const [output, setOutput] = useState<string>('');
+  const [runningTests, setRunningTests] = useState<boolean>(false);
+  const [testResults, setTestResults] = useState<Array<{passed: boolean, output: string}>>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (challenges.length > 0) {
+      setCurrentChallenge(challenges[0]);
+      setCurrentCode(challenges[0].starterCode);
+    }
+  }, [challenges]);
+
+  const handleRunCode = () => {
+    try {
+      // Create a sandbox environment to run the code
+      const sandbox = new Function('return ' + currentCode)();
+      
+      // For simplicity, we'll just run the function with basic input
+      const sampleInput = currentChallenge?.testCases[0].input || '';
+      
+      // Extract variables from input string (simple parsing)
+      const inputMatch = sampleInput.match(/(\w+)\s*=\s*(\[.+?\]|\d+|".+?")/g);
+      const inputVars: {[key: string]: any} = {};
+      
+      if (inputMatch) {
+        inputMatch.forEach(match => {
+          const [key, value] = match.split('=').map(s => s.trim());
+          try {
+            inputVars[key] = JSON.parse(value);
+          } catch {
+            inputVars[key] = value;
+          }
+        });
+      }
+      
+      // Call the function with extracted variables
+      let result;
+      if (currentChallenge?.title === "Two Sum") {
+        result = sandbox(inputVars.nums, inputVars.target);
+      } else if (currentChallenge?.title === "Reverse String") {
+        result = sandbox([...inputVars.s]); // Clone the array
+      } else if (currentChallenge?.title === "Fizz Buzz") {
+        result = sandbox(inputVars.n);
+      }
+      
+      setOutput(JSON.stringify(result, null, 2));
+      toast({
+        title: "Code executed successfully",
+        description: "Check the output panel for results",
+      });
+    } catch (error) {
+      setOutput(`Error: ${error.message}`);
+      toast({
+        title: "Execution error",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
-  const handleRun = () => {
-    // Simulate running test cases
-    const results = sampleQuestion.examples.map(example => ({
-      input: example.input,
-      expected: example.output,
-      actual: "[0,1]", // This would be the actual output from the code
-      passed: true // This would be determined by comparing actual and expected
-    }));
-    setTestResults(results);
-    toast.success("Tests completed!");
+  const handleRunTests = () => {
+    setRunningTests(true);
+    setTestResults([]);
+    
+    try {
+      const sandbox = new Function('return ' + currentCode)();
+      const results = currentChallenge?.testCases.map(testCase => {
+        try {
+          // Extract variables from input string
+          const inputMatch = testCase.input.match(/(\w+)\s*=\s*(\[.+?\]|\d+|".+?")/g);
+          const inputVars: {[key: string]: any} = {};
+          
+          if (inputMatch) {
+            inputMatch.forEach(match => {
+              const [key, value] = match.split('=').map(s => s.trim());
+              try {
+                inputVars[key] = JSON.parse(value);
+              } catch {
+                inputVars[key] = value;
+              }
+            });
+          }
+          
+          // Call the function with extracted variables
+          let result;
+          if (currentChallenge?.title === "Two Sum") {
+            result = sandbox(inputVars.nums, inputVars.target);
+          } else if (currentChallenge?.title === "Reverse String") {
+            const arrCopy = [...inputVars.s]; // Clone the array
+            result = sandbox(arrCopy);
+            // If function returns undefined, use the modified array
+            if (result === undefined) result = arrCopy;
+          } else if (currentChallenge?.title === "Fizz Buzz") {
+            result = sandbox(inputVars.n);
+          }
+          
+          // Parse the expected output
+          let expectedOutput;
+          try {
+            expectedOutput = JSON.parse(testCase.expectedOutput);
+          } catch {
+            expectedOutput = testCase.expectedOutput;
+          }
+          
+          // Compare result with expected output
+          const resultStr = JSON.stringify(result);
+          const expectedStr = JSON.stringify(expectedOutput);
+          const passed = resultStr === expectedStr;
+          
+          return {
+            passed,
+            output: resultStr
+          };
+        } catch (error) {
+          return {
+            passed: false,
+            output: `Error: ${error.message}`
+          };
+        }
+      }) || [];
+      
+      setTestResults(results);
+      
+      const allPassed = results.every(result => result.passed);
+      toast({
+        title: allPassed ? "All tests passed! 🎉" : "Some tests failed",
+        description: allPassed 
+          ? "Your solution works for all test cases!" 
+          : "Check the test results for more details",
+        variant: allPassed ? "default" : "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Execution error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setRunningTests(false);
+    }
   };
 
-  const handleSubmit = () => {
-    // Simulate submission
-    toast.info("Submitting your solution...");
-    setTimeout(() => {
-      toast.success("All test cases passed!");
-    }, 1500);
+  const handleChallengeSelect = (challengeId: string) => {
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (challenge) {
+      setCurrentChallenge(challenge);
+      setCurrentCode(challenge.starterCode);
+      setOutput('');
+      setTestResults([]);
+    }
   };
+
+  const navigateChallenge = (direction: 'prev' | 'next') => {
+    if (!currentChallenge) return;
+    
+    const currentIndex = challenges.findIndex(c => c.id === currentChallenge.id);
+    let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    
+    // Wrap around if needed
+    if (newIndex < 0) newIndex = challenges.length - 1;
+    if (newIndex >= challenges.length) newIndex = 0;
+    
+    handleChallengeSelect(challenges[newIndex].id);
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Easy': return 'text-green-500';
+      case 'Medium': return 'text-yellow-500';
+      case 'Hard': return 'text-red-500';
+      default: return '';
+    }
+  };
+
+  if (!currentChallenge) {
+    return <div className="container mx-auto p-6">Loading challenges...</div>;
+  }
 
   return (
-    <div className="container mx-auto p-4 min-h-[90vh]">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left side - Question */}
-        <Card className="p-6 bg-white shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold text-gray-900">{sampleQuestion.title}</h1>
-              <Badge 
-                variant={sampleQuestion.difficulty === "Easy" ? "default" : 
-                        sampleQuestion.difficulty === "Medium" ? "secondary" : "destructive"}
-                className="text-sm"
-              >
-                {sampleQuestion.difficulty}
-              </Badge>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" className="text-gray-600">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Hint
-              </Button>
-              <Button variant="outline" size="sm" className="text-gray-600">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Discuss
-              </Button>
-            </div>
-          </div>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="description" className="flex items-center">
-                <Code className="h-4 w-4 mr-2" />
-                Description
-              </TabsTrigger>
-              <TabsTrigger value="solution" className="flex items-center">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Solution
-              </TabsTrigger>
-              <TabsTrigger value="discussion" className="flex items-center">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Discussion
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="description" className="space-y-6">
-              <div className="prose prose-sm max-w-none">
-                <p className="text-gray-700 leading-relaxed">{sampleQuestion.description}</p>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <AlertCircle className="h-5 w-5 mr-2 text-blue-500" />
-                  Examples
-                </h3>
-                {sampleQuestion.examples.map((example, index) => (
-                  <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <span className="font-medium text-gray-900">Example {index + 1}:</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Input:</p>
-                          <p className="font-mono text-sm bg-gray-100 p-2 rounded">{example.input}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Output:</p>
-                          <p className="font-mono text-sm bg-gray-100 p-2 rounded">{example.output}</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600">Explanation: {example.explanation}</p>
-                    </div>
+    <div className="container mx-auto p-4 pb-16">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Coding Practice</h1>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigateChallenge('prev')}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigateChallenge('next')}
+          >
+            Next <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{currentChallenge.title}</span>
+                <span className={`text-sm font-normal ${getDifficultyColor(currentChallenge.difficulty)}`}>
+                  {currentChallenge.difficulty}
+                </span>
+              </CardTitle>
+              <CardDescription>
+                Problem #{currentChallenge.id}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Tabs defaultValue="description">
+                <TabsList className="w-full">
+                  <TabsTrigger value="description" className="flex-1">Description</TabsTrigger>
+                  <TabsTrigger value="hints" className="flex-1">Hints</TabsTrigger>
+                  <TabsTrigger value="constraints" className="flex-1">Constraints</TabsTrigger>
+                </TabsList>
+                <TabsContent value="description" className="mt-4">
+                  <div className="prose max-w-none">
+                    <p className="whitespace-pre-line">{currentChallenge.description}</p>
                   </div>
-                ))}
-              </div>
-              
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <AlertCircle className="h-5 w-5 mr-2 text-blue-500" />
-                  Constraints
-                </h3>
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <ul className="space-y-3">
-                    {sampleQuestion.constraints.map((constraint, index) => (
-                      <li key={index} className="flex items-start">
-                        <div className="flex-shrink-0 mt-1">
-                          <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                        </div>
-                        <span className="ml-3 text-gray-700 font-mono text-sm">{constraint}</span>
-                      </li>
+                  <div className="mt-4">
+                    <h4 className="font-medium text-lg mb-2">Examples</h4>
+                    {currentChallenge.testCases.map((testCase, index) => (
+                      <TestCase 
+                        key={index}
+                        index={index + 1}
+                        input={testCase.input}
+                        output={testCase.expectedOutput}
+                        explanation={testCase.explanation}
+                      />
                     ))}
-                  </ul>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="solution">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="text-gray-600">Solutions will be available after you submit your code.</p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="discussion">
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <p className="text-gray-600">Discussion forum will be available after you submit your code.</p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </Card>
-
-        {/* Right side - Code Editor and Test Cases */}
-        <div className="space-y-4">
-          <Card className="p-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={handleRun}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Run
-                </Button>
-                <Button variant="default" size="sm" onClick={handleSubmit}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Submit
-                </Button>
-              </div>
-              <select
-                className="border rounded px-2 py-1 text-sm"
-                value={language}
-                onChange={e => setLanguage(e.target.value)}
-              >
-                <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-                <option value="cpp">C++</option>
-              </select>
-            </div>
-            
-            <CodeMirror
-              value={code}
-              height="24rem"
-              theme="dark"
-              extensions={getExtensions()}
-              onChange={(value) => setCode(value)}
-              basicSetup={{ lineNumbers: true, autocompletion: true }}
-              className="editor-left-align"
-              style={{ borderRadius: '0.5rem', fontSize: '1rem', textAlign: 'left' }}
-            />
-          </Card>
-
-          <Card className="p-4">
-            <h3 className="font-semibold mb-4 text-gray-900 flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2 text-blue-500" />
-              Test Cases
-            </h3>
-            <div className="space-y-4">
-              {sampleQuestion.examples.map((example, index) => (
-                <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-900">Test Case {index + 1}</span>
-                    {testResults && (
-                      testResults[index].passed ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-red-500" />
-                      )
+                  </div>
+                </TabsContent>
+                <TabsContent value="hints" className="mt-4">
+                  <div className="space-y-2">
+                    {currentChallenge.hints.map((hint, index) => (
+                      <div key={index} className="p-3 bg-yellow-50 border border-yellow-100 rounded-md">
+                        <p className="text-sm"><strong>Hint {index + 1}:</strong> {hint}</p>
+                      </div>
+                    ))}
+                    {currentChallenge.hints.length === 0 && (
+                      <p className="text-gray-500 italic">No hints available for this problem.</p>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Input</p>
-                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">{example.input}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Expected Output</p>
-                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">{example.output}</p>
-                    </div>
-                  </div>
-                  {testResults && !testResults[index].passed && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">Your Output</p>
-                      <p className="font-mono text-sm bg-gray-100 p-2 rounded">{testResults[index].actual}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                </TabsContent>
+                <TabsContent value="constraints" className="mt-4">
+                  <ul className="list-disc pl-5 space-y-1">
+                    {currentChallenge.constraints.map((constraint, index) => (
+                      <li key={index} className="text-sm text-gray-700">{constraint}</li>
+                    ))}
+                  </ul>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
           </Card>
+        </div>
+        
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Solution</CardTitle>
+              <CardDescription>
+                {currentChallenge.language === 'javascript' ? 'JavaScript' : currentChallenge.language}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CodeEditor 
+                code={currentCode} 
+                language={currentChallenge.language}
+                onChange={setCurrentCode} 
+              />
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button 
+                variant="outline"
+                onClick={handleRunCode}
+                className="gap-1"
+              >
+                <Play className="h-4 w-4" /> Run Code
+              </Button>
+              <Button 
+                onClick={handleRunTests}
+                disabled={runningTests}
+                className="gap-1"
+              >
+                {runningTests ? (
+                  <>Running Tests...</>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4" /> Submit
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Output</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CodeRunner output={output} />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Test Results</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {testResults.length > 0 ? (
+                  <div className="space-y-3">
+                    {testResults.map((result, index) => (
+                      <div key={index} className="border rounded-md p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium">Test Case #{index + 1}</span>
+                          {result.passed ? (
+                            <span className="flex items-center text-green-600">
+                              <Check className="h-4 w-4 mr-1" /> Passed
+                            </span>
+                          ) : (
+                            <span className="flex items-center text-red-600">
+                              <X className="h-4 w-4 mr-1" /> Failed
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm">
+                          <div>
+                            <span className="font-medium">Input: </span>
+                            <span className="text-gray-600">{currentChallenge.testCases[index].input}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Expected: </span>
+                            <span className="text-gray-600">{currentChallenge.testCases[index].expectedOutput}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium">Your output: </span>
+                            <span className={result.passed ? "text-green-600" : "text-red-600"}>
+                              {result.output}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">Run the tests to see results</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default CodingPracticePage; 
+export default CodingPracticePage;
