@@ -1,10 +1,10 @@
 
 import { set } from 'date-fns';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 export interface User {
-  id: string;
   name: string;
   email: string;
   profilePicture?: string;
@@ -37,47 +37,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing session in localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const fetchUser = async () => {
+    const response = await fetch(API_URL + '/authentication/get_user', {
+      method: 'GET',
+      credentials: 'include',
+    })
+    const data = await response.json();
+    if (response.status === 200) {
+      setUser({'name': data.name, 'email': data.email});
+      setIsLoading(false);
+    } else {
+      console.error('Error fetching user:', response.statusText);
+      setUser(null);
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    const initializeUser = async () => {
+      await fetchUser();
+    };
+
+    initializeUser();
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    try {
-      const response = await fetch(API_URL + '/authentication/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+    const response = await fetch(API_URL + '/authentication/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    });
+    
+    if (!response.ok) {
+      if (response.status === 500) {
+        setIsLoading(false);
+        throw new Error('Please check your internet connection and try again.');
       }
-      
-      const data = await response.json();
-      
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const err = await response.json();
       setIsLoading(false);
-      
-      window.dispatchEvent(new Event('Logged In'));
-    } catch (err) {
-      console.error('Login error:', err);
-      throw new Error('Invalid credentials');
+      throw new Error(err.error);
     }
-    finally {
-      setIsLoading(false);
-    }
+    
+    await fetchUser();
+    
+    window.dispatchEvent(new Event('Logged In'));
+    setIsLoading(false);
   };
 
   const signup = async (name: string, email: string, password: string) => {
@@ -88,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           name: name,
           email: email,
@@ -96,14 +108,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        if (response.status === 500) {
+          setIsLoading(false);
+          throw new Error('Please check your internet connection and try again.');
+        }
+        const err = await response.json();
+        setIsLoading(false);
+        throw new Error(err.error);
       }
       
-      const data = await response.json();
-      
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setIsLoading(false);
+      await fetchUser();
       
       window.dispatchEvent(new Event('Signed Up'));
     } catch (err) {
@@ -115,9 +129,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const response = await fetch(API_URL + '/authentication/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: user.email,
+      }),
+    });
+    if (!response.ok) {
+      if (response.status === 500) {
+        setIsLoading(false);
+        throw new Error('Please check your internet connection and try again.');
+      }
+      const err = await response.json();
+      setIsLoading(false);
+      throw new Error(err.error);
+    }
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   return (

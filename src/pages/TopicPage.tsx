@@ -144,7 +144,11 @@ const TopicPage = () => {
         });
         
         if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
+          if (response.status === 500) {
+            throw new Error('Please check your internet connection and try again.');
+          }
+          const err = await response.json();
+          throw new Error(err.error);
         }
         
         const data = await response.json();
@@ -165,8 +169,8 @@ const TopicPage = () => {
         
         window.dispatchEvent(new Event('topicContentLoaded'));
       } catch (err) {
-        console.error("Error fetching topic data:", err);
-        setError(`Failed to load data for "${formattedTopicName}". Please try again later.`);
+        console.error("Error fetching topic data:", err.message);
+        setError(`Failed to load data for "${formattedTopicName}". ${err.message}`);
         setLoading(false);
       }
     }

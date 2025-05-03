@@ -169,25 +169,34 @@ const ProfilePage: React.FC = () => {
   // Fetch quiz history when component mounts
   useEffect(() => {
     const fetchQuizHistory = async () => {
-      if (!authUser?.id) return;
-      
       try {
-        const response = await fetch(API_URL + `/quiz/quiz-history?user_id=${authUser.id}`);
+        const response = await fetch(API_URL + `/quiz/quiz-history`,
+          {
+            method: 'GET',
+            credentials: 'include',
+          }
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch quiz history');
+          if (response.status === 500) {
+            setIsLoading(false);
+            throw new Error('Please check your internet connection and try again.');
+          }
+          const err = await response.json();
+          setIsLoading(false);
+          throw new Error(err.error);
         }
         const data = await response.json();
         setQuizHistory(data.quizzes);
       } catch (error) {
-        console.error('Error fetching quiz history:', error);
-        toast.error('Failed to load quiz history');
+        console.error('Error fetching quiz history:', error.message);
+        toast.error(`Failed to load quiz history, ${error.message}`);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchQuizHistory();
-  }, [authUser?.id]);
+  }, [authUser]);
 
   // Group quizzes by topic
   const quizzesByTopic = quizHistory.reduce((acc, quiz) => {
@@ -311,10 +320,18 @@ const ProfilePage: React.FC = () => {
     return null; // Or a loading state
   }
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    toast.success('Logged out successfully');
+  const handleLogout = async () => {
+    try {
+      await logout(); // Will throw if there's an error
+      toast.success('Logged out successfully');
+      navigate('/');
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+    }
   };
 
   const handleQuizDetails = (quiz: any) => {

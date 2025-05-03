@@ -51,7 +51,7 @@ const AuthPage: React.FC = () => {
       toast.success('Login successful!');
       navigate(-1); // Go back to the previous page
     } catch (error) {
-      toast.error('Invalid credentials. Please try again.');
+      toast.error(error.message);
     }
   };
   
