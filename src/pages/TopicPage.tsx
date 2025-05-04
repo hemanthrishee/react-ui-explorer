@@ -145,9 +145,11 @@ const TopicPage = () => {
         
         if (!response.ok) {
           if (response.status === 500) {
+            setError('Please check your internet connection and try again.')
             throw new Error('Please check your internet connection and try again.');
           }
           const err = await response.json();
+          setError(err.error)
           throw new Error(err.error);
         }
         
@@ -171,6 +173,7 @@ const TopicPage = () => {
       } catch (err) {
         if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
           setLoading(false);
+          setError('No internet connection. Please check your connection.')
           throw new Error('No internet connection. Please check your connection.');
         }
 
