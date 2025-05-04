@@ -132,6 +132,10 @@ const Header: React.FC = () => {
       if (data.videos) setVideos(data.videos);
     })
     .catch(error => {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        setLoadingVideos(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Error loading videos:', error);
       toast.error('Failed to load videos');
     })
@@ -153,6 +157,10 @@ const Header: React.FC = () => {
       if (data.articles) setArticles(data.articles);
     })
     .catch(error => {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        setLoadingArticles(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Error loading articles:', error);
       toast.error('Failed to load articles');
     })
@@ -174,6 +182,10 @@ const Header: React.FC = () => {
       if (data.documentation) setDocumentation(data.documentation);
     })
     .catch(error => {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        setLoadingDocumentation(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Error loading documentation:', error);
       toast.error('Failed to load documentation');
     })

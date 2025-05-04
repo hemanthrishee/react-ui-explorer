@@ -38,18 +38,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUser = async () => {
-    const response = await fetch(API_URL + '/authentication/get_user', {
-      method: 'GET',
-      credentials: 'include',
-    })
-    const data = await response.json();
-    if (response.status === 200) {
-      setUser({'name': data.name, 'email': data.email});
+    try {
+      const response = await fetch(API_URL + '/authentication/get_user', {
+        method: 'GET',
+        credentials: 'include',
+      })
+      const data = await response.json();
+      if (response.status === 200) {
+        setUser({'name': data.name, 'email': data.email});
+        setIsLoading(false);
+      } else {
+        console.error('Error fetching user:', response.statusText);
+        setUser(null);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       setIsLoading(false);
-    } else {
-      console.error('Error fetching user:', response.statusText);
-      setUser(null);
-      setIsLoading(false);
+      throw new Error('Failed to fetch user data. Please try again later.');
     }
   }
 
@@ -63,29 +72,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    const response = await fetch(API_URL + '/authentication/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        email: email,
-        password: password,
-      }),
-    });
-    
-    if (!response.ok) {
-      if (response.status === 500) {
+    try {
+      const response = await fetch(API_URL + '/authentication/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 500) {
+          setIsLoading(false);
+          throw new Error('Please check your internet connection and try again.');
+        }
+        const err = await response.json();
         setIsLoading(false);
-        throw new Error('Please check your internet connection and try again.');
+        throw new Error(err.error);
       }
-      const err = await response.json();
-      setIsLoading(false);
-      throw new Error(err.error);
+
+      await fetchUser();
+    } catch (err) {
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
     }
-    
-    await fetchUser();
     
     window.dispatchEvent(new Event('Logged In'));
     setIsLoading(false);
@@ -121,7 +137,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       window.dispatchEvent(new Event('Signed Up'));
     } catch (err) {
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Signup error:', err);
+      setIsLoading(false);
       throw new Error('Invalid credentials');
     }
     finally {
@@ -130,26 +151,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    const response = await fetch(API_URL + '/authentication/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        email: user.email,
-      }),
-    });
-    if (!response.ok) {
-      if (response.status === 500) {
+    try {
+      const response = await fetch(API_URL + '/authentication/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: user.email,
+        }),
+      });
+      if (!response.ok) {
+        if (response.status === 500) {
+          setIsLoading(false);
+          throw new Error('Please check your internet connection and try again.');
+        }
+        const err = await response.json();
         setIsLoading(false);
-        throw new Error('Please check your internet connection and try again.');
+        throw new Error(err.error);
       }
-      const err = await response.json();
-      setIsLoading(false);
-      throw new Error(err.error);
+      setUser(null);
+    } catch (err) {
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
     }
-    setUser(null);
   };
 
   return (

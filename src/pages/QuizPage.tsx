@@ -328,7 +328,6 @@ const QuizPage: React.FC = () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        user_id: user?.user?.id,
         total_time_taken: quizConfig.duration * 60 - timeRemaining,
         score: totalScore,
         correct_attempts: correctAttempts,
@@ -349,8 +348,11 @@ const QuizPage: React.FC = () => {
         toast.error('Failed to save quiz attempt');
       }
     })
-    .catch(error => {
-      console.error('Error saving quiz attempt:', error);
+    .catch(err => {
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        throw new Error('No internet connection. Please check your connection.');
+      }
+      console.error('Error saving quiz attempt:', err);
       toast.error('Failed to save quiz attempt');
     });
     

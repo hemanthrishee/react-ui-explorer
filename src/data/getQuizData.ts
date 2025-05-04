@@ -41,6 +41,9 @@ export const getQuizByTopic = async (topic: string, question_type: string, num_q
     
     return {topic: lowerCaseTopic, questions: data.quiz.quiz}
   } catch (err) {
+    if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+      throw new Error('No internet connection. Please check your connection.');
+    }
     throw new Error(`Failed to fetch quiz data: ${err.message}`);
   }
 };

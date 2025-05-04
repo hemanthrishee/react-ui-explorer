@@ -169,6 +169,11 @@ const TopicPage = () => {
         
         window.dispatchEvent(new Event('topicContentLoaded'));
       } catch (err) {
+        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+          setLoading(false);
+          throw new Error('No internet connection. Please check your connection.');
+        }
+
         console.error("Error fetching topic data:", err.message);
         setError(`Failed to load data for "${formattedTopicName}". ${err.message}`);
         setLoading(false);
@@ -289,67 +294,79 @@ const TopicPage = () => {
     };
 
     // Load videos
-    fetch(API_URL + '/gemini-search/generate-topic-videos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify(requestBody),
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.videos) setTopicVideos(data.videos);
-    })
-    .catch(error => {
-      console.error('Error loading videos:', error);
-      toast.error('Failed to load videos');
-    })
-    .finally(() => {
-      setLoadingTopicVideos(false);
-    });
+    // fetch(API_URL + '/gemini-search/generate-topic-videos', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'X-Requested-With': 'XMLHttpRequest',
+    //   },
+    //   body: JSON.stringify(requestBody),
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //   if (data.videos) setTopicVideos(data.videos);
+    // })
+    // .catch(error => {
+    //   if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+    //     setLoadingTopicVideos(false);
+    //     throw new Error('No internet connection. Please check your connection.');
+    //   }
+    //   console.error('Error loading videos:', error);
+    //   toast.error('Failed to load videos');
+    // })
+    // .finally(() => {
+    //   setLoadingTopicVideos(false);
+    // });
 
-    // Load articles
-    fetch(API_URL + '/gemini-search/generate-topic-articles', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify(requestBody),
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.articles) setTopicArticles(data.articles);
-    })
-    .catch(error => {
-      console.error('Error loading articles:', error);
-      toast.error('Failed to load articles');
-    })
-    .finally(() => {
-      setLoadingTopicArticles(false);
-    });
+    // // Load articles
+    // fetch(API_URL + '/gemini-search/generate-topic-articles', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'X-Requested-With': 'XMLHttpRequest',
+    //   },
+    //   body: JSON.stringify(requestBody),
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //   if (data.articles) setTopicArticles(data.articles);
+    // })
+    // .catch(error => {
+    //   if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+    //     setLoadingTopicArticles(false);
+    //     throw new Error('No internet connection. Please check your connection.');
+    //   }
+    //   console.error('Error loading articles:', error);
+    //   toast.error('Failed to load articles');
+    // })
+    // .finally(() => {
+    //   setLoadingTopicArticles(false);
+    // });
 
-    // Load documentation
-    fetch(API_URL + '/gemini-search/generate-topic-documentation', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify(requestBody),
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.documentation) setTopicDocumentation(data.documentation);
-    })
-    .catch(error => {
-      console.error('Error loading documentation:', error);
-      toast.error('Failed to load documentation');
-    })
-    .finally(() => {
-      setLoadingTopicDocumentation(false);
-    });
+    // // Load documentation
+    // fetch(API_URL + '/gemini-search/generate-topic-documentation', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'X-Requested-With': 'XMLHttpRequest',
+    //   },
+    //   body: JSON.stringify(requestBody),
+    // })
+    // .then(response => response.json())
+    // .then(data => {
+    //   if (data.documentation) setTopicDocumentation(data.documentation);
+    // })
+    // .catch(error => {
+    //   if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+    //     setLoadingTopicDocumentation(false);
+    //     throw new Error('No internet connection. Please check your connection.');
+    //   }
+    //   console.error('Error loading documentation:', error);
+    //   toast.error('Failed to load documentation');
+    // })
+    // .finally(() => {
+    //   setLoadingTopicDocumentation(false);
+    // });
   };
 
   if (loading) {
@@ -478,26 +495,6 @@ const TopicPage = () => {
               <Link2 className="h-3.5 w-3.5" />
               Related
             </Button>
-
-            {/* Desktop Generate Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1.5">
-                  Generate
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleGenerateQuiz} className="flex items-center gap-2">
-                  <Brain className="h-4 w-4" />
-                  Generate Quiz
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleGenerateTopicResources} className="flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4" />
-                  Generate Content
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </div>

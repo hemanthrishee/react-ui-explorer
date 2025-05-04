@@ -187,9 +187,13 @@ const ProfilePage: React.FC = () => {
         }
         const data = await response.json();
         setQuizHistory(data.quizzes);
-      } catch (error) {
-        console.error('Error fetching quiz history:', error.message);
-        toast.error(`Failed to load quiz history, ${error.message}`);
+      } catch (err) {
+        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+          setIsLoading(false);
+          throw new Error('No internet connection. Please check your connection.');
+        }
+        console.error('Error fetching quiz history:', err.message);
+        toast.error(`Failed to load quiz history, ${err.message}`);
       } finally {
         setIsLoading(false);
       }

@@ -135,6 +135,10 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
       if (data.videos) setVideos(data.videos);
     })
     .catch(error => {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Error loading videos:', error);
       toast.error('Failed to load videos');
     })
@@ -156,6 +160,10 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
       if (data.articles) setArticles(data.articles);
     })
     .catch(error => {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Error loading articles:', error);
       toast.error('Failed to load articles');
     })
@@ -177,6 +185,10 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
       if (data.documentation) setDocumentation(data.documentation);
     })
     .catch(error => {
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        setIsLoading(false);
+        throw new Error('No internet connection. Please check your connection.');
+      }
       console.error('Error loading documentation:', error);
       toast.error('Failed to load documentation');
     })
