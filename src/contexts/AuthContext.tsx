@@ -96,15 +96,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       await fetchUser();
+
+      window.dispatchEvent(new Event('Logged In'));
+      setIsLoading(false);
     } catch (err) {
+      window.dispatchEvent(new Event('Log in failed'));
       if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
         setIsLoading(false);
         throw new Error('No internet connection. Please check your connection.');
       }
+      throw new Error(err.message);
     }
-    
-    window.dispatchEvent(new Event('Logged In'));
-    setIsLoading(false);
   };
 
   const signup = async (name: string, email: string, password: string) => {
