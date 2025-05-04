@@ -295,81 +295,6 @@ const TopicPage = () => {
     const requestBody = {
       topic_name: topicName
     };
-
-    // Load videos
-    // fetch(API_URL + '/gemini-search/generate-topic-videos', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-Requested-With': 'XMLHttpRequest',
-    //   },
-    //   body: JSON.stringify(requestBody),
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //   if (data.videos) setTopicVideos(data.videos);
-    // })
-    // .catch(error => {
-    //   if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-    //     setLoadingTopicVideos(false);
-    //     throw new Error('No internet connection. Please check your connection.');
-    //   }
-    //   console.error('Error loading videos:', error);
-    //   toast.error('Failed to load videos');
-    // })
-    // .finally(() => {
-    //   setLoadingTopicVideos(false);
-    // });
-
-    // // Load articles
-    // fetch(API_URL + '/gemini-search/generate-topic-articles', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-Requested-With': 'XMLHttpRequest',
-    //   },
-    //   body: JSON.stringify(requestBody),
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //   if (data.articles) setTopicArticles(data.articles);
-    // })
-    // .catch(error => {
-    //   if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-    //     setLoadingTopicArticles(false);
-    //     throw new Error('No internet connection. Please check your connection.');
-    //   }
-    //   console.error('Error loading articles:', error);
-    //   toast.error('Failed to load articles');
-    // })
-    // .finally(() => {
-    //   setLoadingTopicArticles(false);
-    // });
-
-    // // Load documentation
-    // fetch(API_URL + '/gemini-search/generate-topic-documentation', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'X-Requested-With': 'XMLHttpRequest',
-    //   },
-    //   body: JSON.stringify(requestBody),
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //   if (data.documentation) setTopicDocumentation(data.documentation);
-    // })
-    // .catch(error => {
-    //   if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-    //     setLoadingTopicDocumentation(false);
-    //     throw new Error('No internet connection. Please check your connection.');
-    //   }
-    //   console.error('Error loading documentation:', error);
-    //   toast.error('Failed to load documentation');
-    // })
-    // .finally(() => {
-    //   setLoadingTopicDocumentation(false);
-    // });
   };
 
   if (loading) {
@@ -403,7 +328,7 @@ const TopicPage = () => {
     return (
       <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] safe-top safe-bottom">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">No data found</h2>
+          <h2 className="text-2xl font-semibold mb-4">No internet. Please check your internet connection!!</h2>
           <Button onClick={goBack} className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Search
