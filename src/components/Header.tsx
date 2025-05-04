@@ -138,6 +138,7 @@ const Header: React.FC = () => {
       }
       console.error('Error loading videos:', error);
       toast.error('Failed to load videos');
+      throw new Error('Failed to load videos');
     })
     .finally(() => {
       setLoadingVideos(false);
@@ -163,6 +164,7 @@ const Header: React.FC = () => {
       }
       console.error('Error loading articles:', error);
       toast.error('Failed to load articles');
+      throw new Error('Failed to load articles');
     })
     .finally(() => {
       setLoadingArticles(false);
@@ -188,6 +190,7 @@ const Header: React.FC = () => {
       }
       console.error('Error loading documentation:', error);
       toast.error('Failed to load documentation');
+      throw new Error('Failed to load documentation');
     })
     .finally(() => {
       setLoadingDocumentation(false);

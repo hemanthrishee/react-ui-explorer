@@ -113,6 +113,7 @@ const QuizPage: React.FC = () => {
         }).catch(error => {
           toast.error(error.message || 'Failed to load quiz data');
           navigate(`/topic/${topic}`)
+          throw new Error('Failed to load quiz data');
         });
       }
     }, [topic, quizConfig]);
@@ -354,6 +355,7 @@ const QuizPage: React.FC = () => {
       }
       console.error('Error saving quiz attempt:', err);
       toast.error('Failed to save quiz attempt');
+      throw new Error('Failed to save quiz attempt');
     });
     
     toast.success(`Quiz completed! Your score: ${scorePercentage}%`);

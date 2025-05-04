@@ -194,6 +194,7 @@ const ProfilePage: React.FC = () => {
         }
         console.error('Error fetching quiz history:', err.message);
         toast.error(`Failed to load quiz history, ${err.message}`);
+        throw new Error(`Failed to fetch quiz history. ${err.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -335,6 +336,7 @@ const ProfilePage: React.FC = () => {
       } else {
         toast.error('An unexpected error occurred');
       }
+      throw new Error('Logout failed. Please try again.');
     }
   };
 

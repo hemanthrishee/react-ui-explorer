@@ -26,6 +26,7 @@ const Index = () => {
     } catch (error) {
       console.error('Error during search:', error);
       toast.error("An error occurred while processing your request. Please try again.");
+      throw new Error("An error occurred while processing your request. Please try again.");
     } finally {
       setIsLoading(false);
     }

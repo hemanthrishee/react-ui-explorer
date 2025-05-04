@@ -180,6 +180,7 @@ const TopicPage = () => {
         console.error("Error fetching topic data:", err.message);
         setError(`Failed to load data for "${formattedTopicName}". ${err.message}`);
         setLoading(false);
+        throw new Error(`Failed to load data for "${formattedTopicName}". ${err.message}`);
       }
     }
   }, [topicName]);

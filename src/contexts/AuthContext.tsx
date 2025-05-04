@@ -179,6 +179,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
         throw new Error('No internet connection. Please check your connection.');
       }
+      throw new Error(err.message);
     }
   };
 

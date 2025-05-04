@@ -52,6 +52,7 @@ const AuthPage: React.FC = () => {
       navigate(-1); // Go back to the previous page
     } catch (error) {
       toast.error(error.message);
+      throw new Error('Login failed. Please try again.');
     }
   };
   
@@ -79,6 +80,7 @@ const AuthPage: React.FC = () => {
       navigate(-1); // Go back to the previous page
     } catch (error) {
       toast.error('Could not create account. Please try again.');
+      throw new Error('Signup failed. Please try again.');
     }
   };
   
