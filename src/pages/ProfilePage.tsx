@@ -162,156 +162,103 @@ const ProfilePage: React.FC = () => {
   const { user: authUser, logout, isAuthenticated } = useAuth();
   const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('history');
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [quizHistory, setQuizHistory] = useState<Quiz[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<{ id: number; name: string } | null>(null);
+  const [topics, setTopics] = useState<{ id: number; name: string; quiz_count: number }[]>([]);
+  const [topicsPage, setTopicsPage] = useState(1);
+  const [topicsNumPages, setTopicsNumPages] = useState(1);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [quizzesPage, setQuizzesPage] = useState(1);
+  const [quizzesNumPages, setQuizzesNumPages] = useState(1);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionsPage, setQuestionsPage] = useState(1);
+  const [questionsNumPages, setQuestionsNumPages] = useState(1);
+  const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch quiz history when component mounts
+  // Fetch topics and stats on mount
   useEffect(() => {
-    const fetchQuizHistory = async () => {
+    const fetchTopicsAndStats = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch(API_URL + `/quiz/quiz-history`,
-          {
-            method: 'GET',
-            credentials: 'include',
-          }
-        );
-        if (!response.ok) {
-          if (response.status === 500) {
-            setIsLoading(false);
-            throw new Error('Please check your internet connection and try again.');
-          }
-          const err = await response.json();
-          setIsLoading(false);
-          throw new Error(err.error);
-        }
-        const data = await response.json();
-        setQuizHistory(data.quizzes);
-      } catch (err) {
-        if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-          setIsLoading(false);
-          throw new Error('No internet connection. Please check your connection.');
-        }
-        console.error('Error fetching quiz history:', err.message);
-        toast.error(`Failed to load quiz history, ${err.message}`);
-        throw new Error(`Failed to fetch quiz history. ${err.message}`);
+        // Fetch topics
+        const topicsResponse = await fetch(`${API_URL}/quiz/topics?page=${topicsPage}`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const topicsData = await topicsResponse.json();
+        if (topicsData.status !== 'success') throw new Error(topicsData.message);
+        setTopics(topicsData.topics);
+        setTopicsNumPages(topicsData.num_pages);
+        // Fetch stats
+        const statsResponse = await fetch(`${API_URL}/quiz/quiz-stats`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const statsData = await statsResponse.json();
+        if (statsData.status === 'error') throw new Error(statsData.message);
+        setStats(statsData);
+      } catch (err: any) {
+        toast.error(`Failed to load profile data, ${err.message}`);
       } finally {
         setIsLoading(false);
       }
     };
+    fetchTopicsAndStats();
+  }, [authUser, topicsPage]);
 
-    fetchQuizHistory();
-  }, [authUser]);
+  // Fetch quizzes for selected topic
+  useEffect(() => {
+    if (!selectedTopic) return;
+    setIsLoading(true);
+    const fetchQuizzes = async () => {
+      try {
+        const quizzesResponse = await fetch(`${API_URL}/quiz/quizzes-for-topic/${selectedTopic.id}?page=${quizzesPage}`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const quizzesData = await quizzesResponse.json();
+        if (quizzesData.status !== 'success') throw new Error(quizzesData.message);
+        setQuizzes(quizzesData.quizzes);
+        setQuizzesNumPages(quizzesData.num_pages);
+      } catch (err: any) {
+        toast.error(`Failed to load quizzes, ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuizzes();
+  }, [selectedTopic, quizzesPage]);
 
-  // Group quizzes by topic
-  const quizzesByTopic = quizHistory.reduce((acc, quiz) => {
-    if (!acc[quiz.topic]) {
-      acc[quiz.topic] = [];
-    }
-    acc[quiz.topic].push(quiz);
-    return acc;
-  }, {} as Record<string, Quiz[]>);
+  // Fetch questions for selected quiz
+  useEffect(() => {
+    if (!selectedQuiz) return;
+    setIsLoading(true);
+    const fetchQuestions = async () => {
+      try {
+        const questionsResponse = await fetch(`${API_URL}/quiz/questions-for-quiz/${selectedQuiz.id}?page=${questionsPage}`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const questionsData = await questionsResponse.json();
+        if (questionsData.status !== 'success') throw new Error(questionsData.message);
+        setQuestions(questionsData.questions);
+        setQuestionsNumPages(questionsData.num_pages);
+      } catch (err: any) {
+        toast.error(`Failed to load questions, ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [selectedQuiz, questionsPage]);
 
-  // Stats calculations
-  const topicStats = quizHistory.reduce((acc, quiz) => {
-    if (!acc[quiz.topic]) {
-      acc[quiz.topic] = {
-        name: quiz.topic,
-        quizzes: 0,
-        avgScore: 0,
-        totalScore: 0,
-        questionTypes: {
-          'mcq': 0,
-          'multiple-correct': 0,
-          'true-false': 0
-        }
-      };
-    }
-    acc[quiz.topic].quizzes += 1;
-    acc[quiz.topic].totalScore += quiz.score;
-    acc[quiz.topic].avgScore = Math.round(acc[quiz.topic].totalScore / acc[quiz.topic].quizzes);
-    acc[quiz.topic].questionTypes[quiz.question_type] += 1;
-    return acc;
-  }, {} as Record<string, { 
-    name: string; 
-    quizzes: number; 
-    avgScore: number; 
-    totalScore: number;
-    questionTypes: Record<string, number>;
-  }>);
-
-  const topicStatsArray = Object.values(topicStats);
-
-  // Calculate overall question type distribution
-  const questionTypeStats = quizHistory.reduce((acc, quiz) => {
-    if (!acc[quiz.question_type]) {
-      acc[quiz.question_type] = 0;
-    }
-    acc[quiz.question_type] += 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const questionTypeData = Object.entries(questionTypeStats).map(([name, value]) => ({
-    name,
-    value
-  }));
-
-  // Update score distribution data calculation
-  const scoreDistribution = quizHistory.reduce((acc, quiz) => {
-    const range = Math.floor(quiz.score / 10) * 10;
-    const key = `${range}-${range + 9}`;
-    if (!acc[key]) {
-      acc[key] = 0;
-    }
-    acc[key] += 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const scoreDistributionData = Object.entries(scoreDistribution).map(([range, count]) => ({
-    range,
-    count
-  }));
-
-  // Update time analysis data
-  const timeAnalysis = quizHistory.map(quiz => ({
-    topic: quiz.topic,
-    timeInMinutes: secondsToMinutes(quiz.timeSpent),
-    score: quiz.percentage
-  }));
-
-  // Update performance by question type calculation
-  const performanceByQuestionType = quizHistory.reduce((acc, quiz) => {
-    if (!acc[quiz.question_type]) {
-      acc[quiz.question_type] = {
-        totalQuestions: 0,
-        correctAnswers: 0,
-        time: 0
-      };
-    }
-    acc[quiz.question_type].totalQuestions += quiz.questions.length;
-    acc[quiz.question_type].correctAnswers += quiz.questions.reduce((sum, q) => sum + (q.isCorrect ? 1 : 0), 0);
-    acc[quiz.question_type].time += quiz.timeSpent;
-    return acc;
-  }, {} as Record<string, { totalQuestions: number; correctAnswers: number; time: number }>);
-
-  // Update performance by question type data calculation
-  const performanceByQuestionTypeData = Object.entries(performanceByQuestionType).map(([type, data]) => ({
-    type,
-    accuracy: (data.correctAnswers / data.totalQuestions) * 100,
-    avgTime: secondsToMinutes(data.time / quizHistory.filter(q => q.question_type === type).length)
-  }));
-
-  // Add score progression data
-  const scoreProgression = quizHistory
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map((quiz, index) => ({
-      date: new Date(quiz.date).toLocaleDateString(),
-      score: quiz.score,
-      topic: quiz.topic,
-      cumulativeAvg: quizHistory
-        .slice(0, index + 1)
-        .reduce((sum, q) => sum + q.score, 0) / (index + 1)
-    }));
+  // Use backend stats for charts and analytics
+  const topicStatsArray = stats?.topicStats || [];
+  const questionTypeData = stats?.questionTypeData || [];
+  const scoreDistributionData = stats?.scoreDistributionData || [];
+  const timeAnalysis = stats?.timeAnalysis || [];
+  const performanceByQuestionTypeData = stats?.performanceByQuestionTypeData || [];
+  const scoreProgression = stats?.scoreProgression || [];
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -345,23 +292,28 @@ const ProfilePage: React.FC = () => {
     setActiveTab('quiz-details');
   };
 
-  const handleTopicSelect = (topic: string) => {
-    setSelectedTopic(topic);
+  const handleTopicSelect = (topicName: string) => {
+    const topic = topics.find(t => t.name === topicName);
+    if (topic) {
+      setSelectedTopic({ id: topic.id, name: topic.name });
+      setQuizzesPage(1);
+    }
   };
 
   const handleBackToTopics = () => {
     setSelectedTopic(null);
+    setQuizzes([]);
+    setQuestions([]);
+    setSelectedQuiz(null);
   };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  // Calculate stats only if quizHistory exists and is not empty
-  const averageScore = quizHistory.length > 0 
-    ? quizHistory.reduce((sum, quiz) => sum + quiz.percentage, 0) / quizHistory.length 
-    : null;
-  const totalQuizzes = quizHistory.length;
-  const totalTopics = new Set(quizHistory.map(quiz => quiz.topic)).size;
-  const totalTimeSpent = quizHistory.reduce((sum, quiz) => sum + quiz.timeSpent, 0);
+  // Use backend stats
+  const averageScore = stats?.averageScore ?? null;
+  const totalQuizzes = stats?.totalQuizzes ?? 0;
+  const totalTopics = stats?.totalTopics ?? 0;
+  const totalTimeSpent = stats?.totalTimeSpent ?? 0;
 
   return (
     <div className="container mx-auto p-4 py-8">
@@ -469,17 +421,17 @@ const ProfilePage: React.FC = () => {
                 ) : !selectedTopic ? (
                   // Show topics list
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Object.keys(quizzesByTopic).map((topic) => (
+                    {topics.map((topic) => (
                       <Card 
-                        key={topic} 
+                        key={topic.id} 
                         className="hover:shadow-md transition-all cursor-pointer"
-                        onClick={() => handleTopicSelect(topic)}
+                        onClick={() => handleTopicSelect(topic.name)}
                       >
                         <CardContent className="p-6">
                           <div className="flex flex-col items-center text-center">
-                            <h3 className="text-xl font-semibold mb-2">{topic}</h3>
+                            <h3 className="text-xl font-semibold mb-2">{topic.name}</h3>
                             <p className="text-sm text-gray-500">
-                              {quizzesByTopic[topic].length} {quizzesByTopic[topic].length === 1 ? 'quiz' : 'quizzes'}
+                              {topic.quiz_count} {topic.quiz_count === 1 ? 'quiz' : 'quizzes'}
                             </p>
                           </div>
                         </CardContent>
@@ -499,11 +451,11 @@ const ProfilePage: React.FC = () => {
                         <ChevronRight className="h-4 w-4 rotate-180" />
                         Back to Topics
                       </Button>
-                      <h3 className="text-xl font-semibold">{selectedTopic}</h3>
+                      <h3 className="text-xl font-semibold">{selectedTopic.name}</h3>
                     </div>
                     
                     <div className="space-y-3">
-                      {quizzesByTopic[selectedTopic].map((quiz, index) => (
+                      {quizzes.map((quiz, index) => (
                         <Card 
                           key={quiz.id} 
                           className="hover:shadow-md transition-all cursor-pointer" 
@@ -806,13 +758,12 @@ const ProfilePage: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
                       <Separator />
                       
                       <h3 className="font-semibold text-lg">Questions</h3>
                       
                       <div className="space-y-4">
-                        {selectedQuiz.questions.map((q: any, i: number) => {
+                        {(questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
                           const isSkipped = !q.selectedAnswers || q.selectedAnswers.length === 0;
                           
                           return (
