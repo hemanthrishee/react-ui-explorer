@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Pagination as ShadcnPagination,
@@ -5,10 +6,8 @@ import {
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "@/components/ui/pagination";
-import { ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -92,13 +91,17 @@ const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, c
           </PaginationLink>
         </PaginationItem>
         
-        {/* Previous page button */}
+        {/* Previous button */}
         <PaginationItem>
-          <PaginationPrevious 
+          <PaginationLink 
             onClick={() => handlePageChange(page - 1)}
-            className={cn(page === 1 && "pointer-events-none opacity-50")}
+            className={cn("gap-1", page === 1 && "pointer-events-none opacity-50")}
             aria-disabled={page === 1}
-          />
+            aria-label="Go to previous page"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Previous</span>
+          </PaginationLink>
         </PaginationItem>
         
         {getPageNumbers().map((pageNumber, index) => (
@@ -116,13 +119,17 @@ const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, c
           </PaginationItem>
         ))}
         
-        {/* Next page button */}
+        {/* Next button */}
         <PaginationItem>
-          <PaginationNext 
+          <PaginationLink 
             onClick={() => handlePageChange(page + 1)}
-            className={cn(page === numPages && "pointer-events-none opacity-50")}
+            className={cn("gap-1", page === numPages && "pointer-events-none opacity-50")}
             aria-disabled={page === numPages}
-          />
+            aria-label="Go to next page"
+          >
+            <span>Next</span>
+            <ChevronRight className="h-4 w-4" />
+          </PaginationLink>
         </PaginationItem>
         
         {/* Last page button */}
