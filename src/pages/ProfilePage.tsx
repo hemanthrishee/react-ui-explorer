@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ProfileCard from '@/components/ProfileCard';
 import { Button } from '@/components/ui/button';
+import Pagination from '@/components/Pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -175,6 +176,7 @@ const ProfilePage: React.FC = () => {
   const [questionsNumPages, setQuestionsNumPages] = useState(1);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Fetch topics and stats on mount
   useEffect(() => {
@@ -274,6 +276,7 @@ const ProfilePage: React.FC = () => {
   }
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       await logout(); // Will throw if there's an error
       toast.success('Logged out successfully');
@@ -285,6 +288,8 @@ const ProfilePage: React.FC = () => {
         toast.error('An unexpected error occurred');
       }
       throw new Error('Logout failed. Please try again.');
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -331,6 +336,8 @@ const ProfilePage: React.FC = () => {
             topicsCovered={stats?.totalTopics || 0}
             onLogout={handleLogout}
             onGoBack={() => navigate(-1)}
+            isLoggingOut={isLoggingOut}
+            isLoadingStats={isLoading || !stats}
           />
         </div>
         
@@ -367,21 +374,29 @@ const ProfilePage: React.FC = () => {
                   // Show topics list
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {topics.map((topic) => (
-                      <Card 
-                        key={topic.id} 
-                        className="hover:shadow-md transition-all cursor-pointer"
-                        onClick={() => handleTopicSelect(topic.name)}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex flex-col items-center text-center">
-                            <h3 className="text-xl font-semibold mb-2">{topic.name}</h3>
-                            <p className="text-sm text-gray-500">
-                              {topic.quiz_count} {topic.quiz_count === 1 ? 'quiz' : 'quizzes'}
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+  <Card 
+    key={topic.id} 
+    className="hover:shadow-md transition-all cursor-pointer"
+    onClick={() => handleTopicSelect(topic.name)}
+  >
+    <CardContent className="p-6">
+      <div className="flex flex-col items-center text-center">
+        <h3 className="text-xl font-semibold mb-2">{topic.name}</h3>
+        <p className="text-sm text-gray-500">
+          {topic.quiz_count} {topic.quiz_count === 1 ? 'quiz' : 'quizzes'}
+        </p>
+      </div>
+    </CardContent>
+  </Card>
+))}
+{topicsNumPages > 1 && (
+  <Pagination
+    page={topicsPage}
+    numPages={topicsNumPages}
+    onPageChange={setTopicsPage}
+    className="mt-4"
+  />
+)}
                   </div>
                 ) : (
                   // Show quizzes for selected topic
@@ -400,42 +415,52 @@ const ProfilePage: React.FC = () => {
                     </div>
                     
                     <div className="space-y-3">
-                      {quizzes.map((quiz, index) => (
-                        <Card 
-                          key={quiz.id} 
-                          className="hover:shadow-md transition-all cursor-pointer" 
-                          onClick={() => handleQuizDetails(quiz)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-center">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg">
-                                  {quiz.subtopic || `General Test ${index + 1}`}
-                                </h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3.5 w-3.5" />
-                                    <span>{new Date(quiz.date).toLocaleDateString()}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-3.5 w-3.5" />
-                                    <span>{formatTime(quiz.timeSpent)}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                <div className={`text-lg font-bold ${quiz.percentage >= 80 ? 'text-green-600' : quiz.percentage >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-                                  {quiz.percentage}%
-                                </div>
-                                <div className="text-xs text-gray-500 flex items-center gap-1">
-                                  <span>Details</span>
-                                  <ChevronRight className="h-3 w-3" />
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                      <>
+  {quizzes.map((quiz, index) => (
+    <Card 
+      key={quiz.id} 
+      className="hover:shadow-md transition-all cursor-pointer" 
+      onClick={() => handleQuizDetails(quiz)}
+    >
+      <CardContent className="p-4">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg">
+              {quiz.subtopic || `General Test ${index + 1}`}
+            </h3>
+            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>{new Date(quiz.date).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{formatTime(quiz.timeSpent)}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col items-end">
+            <div className={`text-lg font-bold ${quiz.percentage >= 80 ? 'text-green-600' : quiz.percentage >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+              {quiz.percentage}%
+            </div>
+            <div className="text-xs text-gray-500 flex items-center gap-1">
+              <span>Details</span>
+              <ChevronRight className="h-3 w-3" />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  ))}
+  {quizzesNumPages > 1 && (
+    <Pagination
+      page={quizzesPage}
+      numPages={quizzesNumPages}
+      onPageChange={setQuizzesPage}
+      className="mt-4"
+    />
+  )}
+</>
                     </div>
                   </div>
                 )}
@@ -708,7 +733,8 @@ const ProfilePage: React.FC = () => {
                       <h3 className="font-semibold text-lg">Questions</h3>
                       
                       <div className="space-y-4">
-                        {(questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
+                        <>
+  {(questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
                           const isSkipped = !q.selectedAnswers || q.selectedAnswers.length === 0;
                           
                           return (
@@ -794,7 +820,16 @@ const ProfilePage: React.FC = () => {
                             </div>
                           );
                         })}
-                      </div>
+                      {questionsNumPages > 1 && (
+    <Pagination
+      page={questionsPage}
+      numPages={questionsNumPages}
+      onPageChange={setQuestionsPage}
+      className="mt-4"
+    />
+  )}
+  </>
+  </div>
                     </CardContent>
                   </Card>
                 </div>

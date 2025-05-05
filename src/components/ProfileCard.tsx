@@ -3,6 +3,8 @@ import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { User, LogOut, Clock, BookCheck, Layers } from 'lucide-react';
 
+import { Skeleton } from "./ui/skeleton";
+
 interface ProfileCardProps {
   name: string;
   email: string;
@@ -13,6 +15,8 @@ interface ProfileCardProps {
   topicsCovered: number;
   onLogout: () => void;
   onGoBack?: () => void;
+  isLoggingOut?: boolean;
+  isLoadingStats?: boolean;
 }
 
 function formatTime(seconds: number) {
@@ -21,6 +25,8 @@ function formatTime(seconds: number) {
   const min = mins % 60;
   return `${hrs > 0 ? hrs + 'h ' : ''}${min}m`;
 }
+
+import { Loader2 } from 'lucide-react';
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   name,
@@ -32,6 +38,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   topicsCovered,
   onLogout,
   onGoBack,
+  isLoggingOut = false,
+  isLoadingStats = false,
 }) => {
   return (
     <Card className="w-full p-6 flex flex-col items-center gap-4">
@@ -49,22 +57,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <div className="flex flex-wrap justify-center gap-4 mt-2 w-full">
         <div className="flex flex-col items-center">
           <BookCheck className="h-6 w-6 text-blue-600 mb-1" />
-          <div className="font-semibold text-lg">{totalQuizzes}</div>
+          <div className="font-semibold text-lg">
+            {isLoadingStats ? <Skeleton className="h-7 w-10 mb-1" /> : totalQuizzes}
+          </div>
           <div className="text-xs text-gray-500">Quizzes Taken</div>
         </div>
         <div className="flex flex-col items-center">
           <Clock className="h-6 w-6 text-purple-600 mb-1" />
-          <div className="font-semibold text-lg">{formatTime(totalTime)}</div>
+          <div className="font-semibold text-lg">
+            {isLoadingStats ? <Skeleton className="h-7 w-14 mb-1" /> : formatTime(totalTime)}
+          </div>
           <div className="text-xs text-gray-500">Total Time</div>
         </div>
         <div className="flex flex-col items-center">
           <Layers className="h-6 w-6 text-green-600 mb-1" />
-          <div className="font-semibold text-lg">{topicsCovered}</div>
+          <div className="font-semibold text-lg">
+            {isLoadingStats ? <Skeleton className="h-7 w-10 mb-1" /> : topicsCovered}
+          </div>
           <div className="text-xs text-gray-500">Topics Covered</div>
         </div>
         <div className="flex flex-col items-center">
           <div className="relative flex items-center justify-center mb-1">
-            {(() => {
+            {isLoadingStats ? (
+              <Skeleton className="h-28 w-28 rounded-full" />
+            ) : (() => {
               let bg = "bg-amber-100";
               let border = "border-amber-300";
               let text = "text-amber-600";
@@ -90,8 +106,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <div className="text-xs text-gray-500 font-medium">Average %</div>
         </div>
       </div>
-      <Button variant="destructive" className="mt-4 w-full flex gap-2 items-center justify-center" onClick={onLogout}>
-        <LogOut className="h-5 w-5" /> Logout
+      <Button
+        variant="destructive"
+        className="mt-4 w-full flex gap-2 items-center justify-center"
+        onClick={onLogout}
+        disabled={isLoggingOut}
+      >
+        {isLoggingOut ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <LogOut className="h-5 w-5" />
+        )}
+        Logout
       </Button>
       {onGoBack && (
         <Button
