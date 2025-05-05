@@ -176,6 +176,7 @@ const ProfilePage: React.FC = () => {
   const [questionsNumPages, setQuestionsNumPages] = useState(1);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Fetch topics and stats on mount
@@ -193,6 +194,7 @@ const ProfilePage: React.FC = () => {
         setTopics(topicsData.topics);
         setTopicsNumPages(topicsData.num_pages);
         // Fetch stats
+        setIsStatsLoading(true);
         const statsResponse = await fetch(`${API_URL}/quiz/quiz-stats`, {
           method: 'GET',
           credentials: 'include',
@@ -200,6 +202,7 @@ const ProfilePage: React.FC = () => {
         const statsData = await statsResponse.json();
         if (statsData.status === 'error') throw new Error(statsData.message);
         setStats(statsData);
+        setIsStatsLoading(false);
       } catch (err: any) {
         toast.error(`Failed to load profile data, ${err.message}`);
       } finally {
@@ -337,7 +340,7 @@ const ProfilePage: React.FC = () => {
             onLogout={handleLogout}
             onGoBack={() => navigate(-1)}
             isLoggingOut={isLoggingOut}
-            isLoadingStats={isLoading || !stats}
+            isLoadingStats={isStatsLoading || !stats}
           />
         </div>
         
