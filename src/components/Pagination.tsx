@@ -7,7 +7,6 @@ import {
   PaginationItem,
   PaginationLink,
 } from "@/components/ui/pagination";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -78,32 +77,6 @@ const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, c
   return (
     <ShadcnPagination className={cn("py-6", className)}>
       <PaginationContent className="flex-wrap">
-        {/* First page button */}
-        <PaginationItem>
-          <PaginationLink 
-            onClick={() => handlePageChange(1)}
-            className={cn("gap-1", page === 1 && "pointer-events-none opacity-50")}
-            aria-disabled={page === 1}
-            aria-label="Go to first page"
-            title="First page"
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </PaginationLink>
-        </PaginationItem>
-        
-        {/* Previous button */}
-        <PaginationItem>
-          <PaginationLink 
-            onClick={() => handlePageChange(page - 1)}
-            className={cn("gap-1", page === 1 && "pointer-events-none opacity-50")}
-            aria-disabled={page === 1}
-            aria-label="Go to previous page"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Previous</span>
-          </PaginationLink>
-        </PaginationItem>
-        
         {getPageNumbers().map((pageNumber, index) => (
           <PaginationItem key={`${pageNumber}-${index}`}>
             {pageNumber < 0 ? (
@@ -118,32 +91,6 @@ const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, c
             )}
           </PaginationItem>
         ))}
-        
-        {/* Next button */}
-        <PaginationItem>
-          <PaginationLink 
-            onClick={() => handlePageChange(page + 1)}
-            className={cn("gap-1", page === numPages && "pointer-events-none opacity-50")}
-            aria-disabled={page === numPages}
-            aria-label="Go to next page"
-          >
-            <span>Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </PaginationLink>
-        </PaginationItem>
-        
-        {/* Last page button */}
-        <PaginationItem>
-          <PaginationLink 
-            onClick={() => handlePageChange(numPages)}
-            className={cn("gap-1", page === numPages && "pointer-events-none opacity-50")}
-            aria-disabled={page === numPages}
-            aria-label="Go to last page"
-            title="Last page"
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </PaginationLink>
-        </PaginationItem>
       </PaginationContent>
     </ShadcnPagination>
   );
