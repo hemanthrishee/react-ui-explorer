@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ProfileCard from '@/components/ProfileCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -318,75 +319,19 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="container mx-auto p-4 py-8">
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar / User Profile */}
-        <div className="w-full md:w-1/4">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex flex-col items-center">
-                <Avatar className="h-24 w-24 mb-4">
-                  <AvatarImage src={authUser.profilePicture} alt={authUser.name} />
-                  <AvatarFallback>{authUser.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <CardTitle className="text-xl">{authUser.name}</CardTitle>
-                <CardDescription>{authUser.email}</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4 my-4">
-                <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">
-                    {isLoading ? <Skeleton className="h-6 w-8" /> : totalQuizzes}
-                  </div>
-                  <div className="text-xs text-gray-500">Quizzes Taken</div>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">
-                    {isLoading ? (
-                      <Skeleton className="h-6 w-12" />
-                    ) : (
-                      averageScore !== null ? `${Math.round(averageScore)}%` : '-'
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500">Average Percentage</div>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">
-                    {isLoading ? <Skeleton className="h-6 w-8" /> : totalTopics}
-                  </div>
-                  <div className="text-xs text-gray-500">Topics</div>
-                </div>
-                <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
-                  <div className="text-xl font-semibold">
-                    {isLoading ? (
-                      <Skeleton className="h-6 w-16" />
-                    ) : (
-                      formatTime(totalTimeSpent)
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500">Total Time Spent</div>
-                </div>
-              </div>
-              
-              <Separator className="my-4" />
-
-              <Button 
-                variant="default" 
-                onClick={() => navigate(-1)} 
-                className="w-full"
-              >
-                Return
-              </Button>
-              
-              <Button 
-                onClick={handleLogout}
-                variant="outline" 
-                className="w-full mt-2 flex items-center justify-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Sidebar */}
+        <div className="w-full md:w-1/4 flex flex-col items-center gap-6">
+          <ProfileCard
+            name={authUser?.name || ''}
+            email={authUser?.email || ''}
+            profileIconUrl={authUser?.profilePicture}
+            totalQuizzes={stats?.totalQuizzes || 0}
+            totalTime={stats?.totalTimeSpent || 0}
+            avgPercentage={stats?.averageScore ? Math.round(stats.averageScore) : 0}
+            topicsCovered={stats?.totalTopics || 0}
+            onLogout={handleLogout}
+            onGoBack={() => navigate(-1)}
+          />
         </div>
         
         {/* Main Content */}
