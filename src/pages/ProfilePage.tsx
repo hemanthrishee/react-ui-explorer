@@ -440,7 +440,7 @@ const ProfilePage: React.FC = () => {
                           numPages={topicsNumPages}
                           onPageChange={setTopicsPage}
                           position="top"
-                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-blue-900 [&>div]:to-black"
+                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-600"
                         />
                       </div>
                     )}
