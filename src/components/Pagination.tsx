@@ -93,7 +93,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size="sm" 
           onClick={() => handlePageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-full p-0 w-8 h-8 flex items-center justify-center mr-2"
+          className="rounded-full p-0 w-10 h-10 flex items-center justify-center mr-3 text-lg"
         >
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Previous</span>
@@ -111,7 +111,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size="sm" 
           onClick={() => handlePageChange(page + 1)}
           disabled={page === numPages}
-          className="rounded-full p-0 w-8 h-8 flex items-center justify-center ml-2"
+          className="rounded-full p-0 w-10 h-10 flex items-center justify-center ml-3 text-lg"
         >
           <ChevronRight className="h-4 w-4" />
           <span className="sr-only">Next</span>
@@ -189,15 +189,52 @@ const Pagination: React.FC<PaginationProps> = ({
     </ShadcnPagination>
   );
 
+  // Responsive: For mobile, show a fixed bottom nav; for lg+, use default pagination
   if (position === "both") {
     return (
       <>
-        <div className="mb-4">
+        <div className="mb-4 lg:mb-4">
           {renderCompactProgress()}
         </div>
-        <div className="mt-4">
+        <div className="mt-4 hidden lg:block">
           {renderProgress()}
           {renderPagination()}
+        </div>
+        {/* Mobile Bottom Pagination */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-md flex items-center justify-center py-3 h-16 w-full lg:hidden">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 1}
+            className="rounded-full p-0 w-10 h-10 flex items-center justify-center mr-3 text-lg"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center space-x-1">
+            {getPaginationItems().map((item, index) => (
+              item === 'ellipsis-start' || item === 'ellipsis-end' ? (
+                <span key={`ellipsis-${index}`} className="px-4 text-lg">...</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => handlePageChange(Number(item))}
+                  className={`px-4 py-2 rounded-full text-base font-semibold ${page === item ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                >
+                  {item}
+                </button>
+              )
+            ))}
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page === numPages}
+            className="rounded-full p-0 w-10 h-10 flex items-center justify-center ml-3 text-lg"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </>
     );
@@ -212,10 +249,48 @@ const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div className="mt-4">
-      {renderProgress()}
-      {renderPagination()}
-    </div>
+    <>
+      <div className="mt-4 hidden lg:block">
+        {renderProgress()}
+        {renderPagination()}
+      </div>
+      {/* Mobile Bottom Pagination */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-md flex items-center justify-center py-3 h-16 w-full lg:hidden">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+          className="rounded-full p-0 w-10 h-10 flex items-center justify-center mr-3 text-lg"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex items-center space-x-1">
+          {getPaginationItems().map((item, index) => (
+            item === 'ellipsis-start' || item === 'ellipsis-end' ? (
+              <span key={`ellipsis-${index}`} className="px-4 text-lg">...</span>
+            ) : (
+              <button
+                key={item}
+                onClick={() => handlePageChange(Number(item))}
+                className={`px-4 py-2 rounded-full text-base font-semibold ${page === item ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+              >
+                {item}
+              </button>
+            )
+          ))}
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === numPages}
+          className="rounded-full p-0 w-10 h-10 flex items-center justify-center ml-3 text-lg"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </>
   );
 };
 

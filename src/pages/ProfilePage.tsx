@@ -23,7 +23,8 @@ import {
   HelpCircle, 
   AlertCircle,
   ChevronDown,
-  Loader2
+  Loader2,
+  User
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -182,6 +183,8 @@ const ProfilePage: React.FC = () => {
   const [totalTopicsCount, setTotalTopicsCount] = useState(0);
   const [quizzesTotalCount, setQuizzesTotalCount] = useState(0);
   const [questionsTotalCount, setQuestionsTotalCount] = useState(0);
+  // Mobile profile card open/close state
+  const [isMobileProfileOpen, setIsMobileProfileOpen] = useState(false);
 
   // Fetch topics and stats on mount
   useEffect(() => {
@@ -337,20 +340,61 @@ const ProfilePage: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar */}
         <div className="w-full md:w-1/4 flex flex-col items-center gap-6">
-          <ProfileCard
-            name={authUser?.name || ''}
-            email={authUser?.email || ''}
-            profileIconUrl={authUser?.profilePicture}
-            totalQuizzes={stats?.totalQuizzes || 0}
-            totalTime={stats?.totalTimeSpent || 0}
-            avgPercentage={stats?.averageScore ? Math.round(stats.averageScore) : 0}
-            topicsCovered={stats?.totalTopics || 0}
-            onLogout={handleLogout}
-            onGoBack={() => navigate(-1)}
-            isLoggingOut={isLoggingOut}
-            isLoadingStats={isStatsLoading || !stats}
-          />
+  {/* Mobile: Collapsible Profile Card */}
+  <div className="block lg:hidden w-full">
+    <div
+      className={`transition-all duration-300 bg-white rounded-xl shadow p-3 flex items-center gap-3 cursor-pointer ${isMobileProfileOpen ? 'mb-4' : ''}`}
+      onClick={() => setIsMobileProfileOpen((open) => !open)}
+      aria-expanded={isMobileProfileOpen}
+    >
+      {authUser?.profilePicture ? (
+        <img src={authUser.profilePicture} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
+      ) : (
+        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+          <User className="h-6 w-6 text-gray-500" />
         </div>
+      )}
+      <div>
+        <div className="font-semibold text-base">{authUser?.name || ''}</div>
+        <div className="text-xs text-gray-500">Profile</div>
+      </div>
+      <ChevronDown className={`ml-auto h-5 w-5 transition-transform ${isMobileProfileOpen ? 'rotate-180' : ''}`} />
+    </div>
+    {isMobileProfileOpen && (
+      <div className="mt-2">
+        <ProfileCard
+          name={authUser?.name || ''}
+          email={authUser?.email || ''}
+          profileIconUrl={authUser?.profilePicture}
+          totalQuizzes={stats?.totalQuizzes || 0}
+          totalTime={stats?.totalTimeSpent || 0}
+          avgPercentage={stats?.averageScore ? Math.round(stats.averageScore) : 0}
+          topicsCovered={stats?.totalTopics || 0}
+          onLogout={handleLogout}
+          onGoBack={() => navigate(-1)}
+          isLoggingOut={isLoggingOut}
+          isLoadingStats={isStatsLoading || !stats}
+        />
+      </div>
+    )}
+  </div>
+  {/* Desktop: Always expanded */}
+  <div className="hidden lg:block w-full">
+    <ProfileCard
+      name={authUser?.name || ''}
+      email={authUser?.email || ''}
+      profileIconUrl={authUser?.profilePicture}
+      totalQuizzes={stats?.totalQuizzes || 0}
+      totalTime={stats?.totalTimeSpent || 0}
+      avgPercentage={stats?.averageScore ? Math.round(stats.averageScore) : 0}
+      topicsCovered={stats?.totalTopics || 0}
+      onLogout={handleLogout}
+      onGoBack={() => navigate(-1)}
+      isLoggingOut={isLoggingOut}
+      isLoadingStats={isStatsLoading || !stats}
+    />
+  </div>
+</div>
         
         {/* Main Content */}
         <div className="w-full md:w-3/4">
