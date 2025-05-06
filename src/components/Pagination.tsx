@@ -9,15 +9,27 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
 
 interface PaginationProps {
   page: number;
   numPages: number;
   onPageChange: (page: number) => void;
   className?: string;
+  progressBarClassName?: string;
+  showProgress?: boolean;
+  position?: "top" | "bottom" | "both";
 }
 
-const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, className = '' }) => {
+const Pagination: React.FC<PaginationProps> = ({ 
+  page, 
+  numPages, 
+  onPageChange, 
+  className = '',
+  progressBarClassName = '',
+  showProgress = true,
+  position = "bottom"
+}) => {
   if (numPages <= 1) return null;
 
   const scrollToTop = () => {
@@ -67,7 +79,25 @@ const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, c
     return items;
   };
 
-  return (
+  const renderProgress = () => {
+    if (!showProgress) return null;
+    
+    return (
+      <div className="flex items-center gap-2 w-full mb-2">
+        <div className="flex-1">
+          <Progress 
+            value={(page / numPages) * 100} 
+            className={`h-2 bg-gray-200 ${progressBarClassName}`} 
+          />
+        </div>
+        <span className="text-xs text-gray-500 whitespace-nowrap">
+          Page {page} / {numPages}
+        </span>
+      </div>
+    );
+  };
+
+  const renderPagination = () => (
     <ShadcnPagination className={className}>
       <PaginationContent>
         <PaginationItem>
@@ -116,6 +146,28 @@ const Pagination: React.FC<PaginationProps> = ({ page, numPages, onPageChange, c
         </PaginationItem>
       </PaginationContent>
     </ShadcnPagination>
+  );
+
+  if (position === "both") {
+    return (
+      <>
+        <div className="mb-4">
+          {renderProgress()}
+          {renderPagination()}
+        </div>
+        <div className="mt-4">
+          {renderProgress()}
+          {renderPagination()}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div className={position === "top" ? "mb-4" : "mt-4"}>
+      {renderProgress()}
+      {renderPagination()}
+    </div>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +29,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 interface Quiz {
@@ -381,131 +383,135 @@ const ProfilePage: React.FC = () => {
                   </div>
                 ) : !selectedTopic ? (
                   // Show topics list
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {topics.map((topic) => (
-  <Card 
-    key={topic.id} 
-    className="hover:shadow-md transition-all cursor-pointer"
-    onClick={() => handleTopicSelect(topic.name)}
-  >
-    <CardContent className="p-6">
-      <div className="flex flex-col items-center text-center">
-        <h3 className="text-xl font-semibold mb-2">{topic.name}</h3>
-        <p className="text-sm text-gray-500">
-          {topic.quiz_count} {topic.quiz_count === 1 ? 'quiz' : 'quizzes'}
-        </p>
-      </div>
-    </CardContent>
-  </Card>
-))}
-{topicsNumPages > 1 && (
-  <>
-    <div className="flex items-center justify-between mt-4 mb-2">
-      <span className="text-sm text-gray-600">
-        Viewing {topics.length} out of {totalTopicsCount || 0} topics
-      </span>
-      <div className="flex-1 mx-4">
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-blue-500 h-2 rounded-full"
-            style={{ width: `${(topicsPage / topicsNumPages) * 100}%` }}
-          />
-        </div>
-      </div>
-      <span className="text-xs text-gray-500">
-        Page {topicsPage} / {topicsNumPages}
-      </span>
-    </div>
-    <Pagination
-      page={topicsPage}
-      numPages={topicsNumPages}
-      onPageChange={setTopicsPage}
-      className="mt-2"
-    />
-  </>
-)}
+                  <div>
+                    {topicsNumPages > 1 && (
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-600 font-medium">
+                            Viewing {topics.length} out of {totalTopicsCount || 0} topics
+                          </span>
+                        </div>
+                        <Pagination
+                          page={topicsPage}
+                          numPages={topicsNumPages}
+                          onPageChange={setTopicsPage}
+                          position="top"
+                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-indigo-600"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {topics.map((topic) => (
+                        <Card 
+                          key={topic.id} 
+                          className="hover:shadow-md transition-all cursor-pointer"
+                          onClick={() => handleTopicSelect(topic.name)}
+                        >
+                          <CardContent className="p-6">
+                            <div className="flex flex-col items-center text-center">
+                              <h3 className="text-xl font-semibold mb-2">{topic.name}</h3>
+                              <p className="text-sm text-gray-500">
+                                {topic.quiz_count} {topic.quiz_count === 1 ? 'quiz' : 'quizzes'}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    
+                    {topicsNumPages > 1 && (
+                      <Pagination
+                        page={topicsPage}
+                        numPages={topicsNumPages}
+                        onPageChange={setTopicsPage}
+                        className="mt-6"
+                        showProgress={false}
+                      />
+                    )}
                   </div>
                 ) : (
                   // Show quizzes for selected topic
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleBackToTopics}
-                        className="flex items-center gap-1"
-                      >
-                        <ChevronRight className="h-4 w-4 rotate-180" />
-                        Back to Topics
-                      </Button>
-                      <h3 className="text-xl font-semibold">{selectedTopic.name}</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleBackToTopics}
+                          className="flex items-center gap-1"
+                        >
+                          <ChevronRight className="h-4 w-4 rotate-180" />
+                          Back to Topics
+                        </Button>
+                        <h3 className="text-xl font-semibold">{selectedTopic.name}</h3>
+                      </div>
                     </div>
                     
+                    {quizzesNumPages > 1 && (
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-600 font-medium">
+                            Viewing {quizzes.length} out of {quizzesTotalCount || 0} quizzes
+                          </span>
+                        </div>
+                        <Pagination
+                          page={quizzesPage}
+                          numPages={quizzesNumPages}
+                          onPageChange={setQuizzesPage}
+                          position="top"
+                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-600"
+                        />
+                      </div>
+                    )}
+                    
                     <div className="space-y-3">
-                      <>
-  {quizzes.map((quiz, index) => (
-    <Card 
-      key={quiz.id} 
-      className="hover:shadow-md transition-all cursor-pointer" 
-      onClick={() => handleQuizDetails(quiz)}
-    >
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">
-              {quiz.subtopic || `General Test ${index + 1}`}
-            </h3>
-            <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>{new Date(quiz.date).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" />
-                <span>{formatTime(quiz.timeSpent)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col items-end">
-            <div className={`text-lg font-bold ${quiz.percentage >= 80 ? 'text-green-600' : quiz.percentage >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-              {quiz.percentage}%
-            </div>
-            <div className="text-xs text-gray-500 flex items-center gap-1">
-              <span>Details</span>
-              <ChevronRight className="h-3 w-3" />
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  ))}
-  {quizzesNumPages > 1 && (
-    <>
-      <div className="flex items-center justify-between mt-4 mb-2">
-        <span className="text-sm text-gray-600">
-          Viewing {quizzes.length} out of {quizzesTotalCount || 0} quizzes
-        </span>
-        <div className="flex-1 mx-4">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-green-500 h-2 rounded-full"
-              style={{ width: `${(quizzesPage / quizzesNumPages) * 100}%` }}
-            />
-          </div>
-        </div>
-        <span className="text-xs text-gray-500">
-          Page {quizzesPage} / {quizzesNumPages}
-        </span>
-      </div>
-      <Pagination
-        page={quizzesPage}
-        numPages={quizzesNumPages}
-        onPageChange={setQuizzesPage}
-        className="mt-2"
-      />
-    </>
-  )}
-</>
+                      {quizzes.map((quiz, index) => (
+                        <Card 
+                          key={quiz.id} 
+                          className="hover:shadow-md transition-all cursor-pointer" 
+                          onClick={() => handleQuizDetails(quiz)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-center">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg">
+                                  {quiz.subtopic || `General Test ${index + 1}`}
+                                </h3>
+                                <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3.5 w-3.5" />
+                                    <span>{new Date(quiz.date).toLocaleDateString()}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    <span>{formatTime(quiz.timeSpent)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                <div className={`text-lg font-bold ${quiz.percentage >= 80 ? 'text-green-600' : quiz.percentage >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                                  {quiz.percentage}%
+                                </div>
+                                <div className="text-xs text-gray-500 flex items-center gap-1">
+                                  <span>Details</span>
+                                  <ChevronRight className="h-3 w-3" />
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      
+                      {quizzesNumPages > 1 && (
+                        <Pagination
+                          page={quizzesPage}
+                          numPages={quizzesNumPages}
+                          onPageChange={setQuizzesPage}
+                          className="mt-4"
+                          showProgress={false}
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -742,6 +748,23 @@ const ProfilePage: React.FC = () => {
                     </Button>
                   </div>
                   
+                  {questionsNumPages > 1 && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600 font-medium">
+                          Viewing {questions.length} out of {questionsTotalCount || 0} questions
+                        </span>
+                      </div>
+                      <Pagination
+                        page={questionsPage}
+                        numPages={questionsNumPages}
+                        onPageChange={setQuestionsPage}
+                        position="top"
+                        progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-600"
+                      />
+                    </div>
+                  )}
+                  
                   <Card>
                     <CardHeader>
                       <CardTitle>Quiz Summary</CardTitle>
@@ -778,8 +801,7 @@ const ProfilePage: React.FC = () => {
                       <h3 className="font-semibold text-lg">Questions</h3>
                       
                       <div className="space-y-4">
-                        <>
-  {(questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
+                        {(questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
                           const isSkipped = !q.selectedAnswers || q.selectedAnswers.length === 0;
                           
                           return (
@@ -865,34 +887,17 @@ const ProfilePage: React.FC = () => {
                             </div>
                           );
                         })}
+                      </div>
+                      
                       {questionsNumPages > 1 && (
-    <>
-      <div className="flex items-center justify-between mt-4 mb-2">
-        <span className="text-sm text-gray-600">
-          Viewing {questions.length} out of {questionsTotalCount || 0} questions
-        </span>
-        <div className="flex-1 mx-4">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-purple-500 h-2 rounded-full"
-              style={{ width: `${(questionsPage / questionsNumPages) * 100}%` }}
-            />
-          </div>
-        </div>
-        <span className="text-xs text-gray-500">
-          Page {questionsPage} / {questionsNumPages}
-        </span>
-      </div>
-      <Pagination
-        page={questionsPage}
-        numPages={questionsNumPages}
-        onPageChange={setQuestionsPage}
-        className="mt-2"
-      />
-    </>
-  )}
-  </>
-  </div>
+                        <Pagination
+                          page={questionsPage}
+                          numPages={questionsNumPages}
+                          onPageChange={setQuestionsPage}
+                          className="mt-6"
+                          showProgress={false}
+                        />
+                      )}
                     </CardContent>
                   </Card>
                 </div>
