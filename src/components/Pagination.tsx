@@ -10,6 +10,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 interface PaginationProps {
   page: number;
@@ -77,6 +78,43 @@ const Pagination: React.FC<PaginationProps> = ({
     }
     
     return items;
+  };
+
+  const renderCompactProgress = () => {
+    if (!showProgress) return null;
+    
+    return (
+      <div className="flex items-center justify-between w-full mb-4 max-w-md mx-auto">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page === 1}
+          className="rounded-full p-0 w-8 h-8 flex items-center justify-center"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="sr-only">Previous</span>
+        </Button>
+        
+        <div className="flex-1 mx-3">
+          <Progress 
+            value={(page / numPages) * 100} 
+            className={`h-2 bg-gray-100 ${progressBarClassName}`} 
+          />
+        </div>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page === numPages}
+          className="rounded-full p-0 w-8 h-8 flex items-center justify-center"
+        >
+          <ChevronRight className="h-4 w-4" />
+          <span className="sr-only">Next</span>
+        </Button>
+      </div>
+    );
   };
 
   const renderProgress = () => {
@@ -152,8 +190,7 @@ const Pagination: React.FC<PaginationProps> = ({
     return (
       <>
         <div className="mb-4">
-          {renderProgress()}
-          {renderPagination()}
+          {renderCompactProgress()}
         </div>
         <div className="mt-4">
           {renderProgress()}
@@ -163,8 +200,16 @@ const Pagination: React.FC<PaginationProps> = ({
     );
   }
 
+  if (position === "top") {
+    return (
+      <div className="mb-4">
+        {renderCompactProgress()}
+      </div>
+    );
+  }
+
   return (
-    <div className={position === "top" ? "mb-4" : "mt-4"}>
+    <div className="mt-4">
       {renderProgress()}
       {renderPagination()}
     </div>
