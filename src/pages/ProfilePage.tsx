@@ -304,6 +304,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleQuizDetails = (quiz: any) => {
+    setQuestionsPage(1); // Always go to page 1 when a new quiz is selected
     setSelectedQuiz(quiz);
     setActiveTab('quiz-details');
   };
@@ -395,7 +396,7 @@ const ProfilePage: React.FC = () => {
                           numPages={topicsNumPages}
                           onPageChange={setTopicsPage}
                           position="top"
-                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-blue-500 [&>div]:to-indigo-600"
+                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-blue-900 [&>div]:to-black"
                         />
                       </div>
                     )}
@@ -459,7 +460,7 @@ const ProfilePage: React.FC = () => {
                           numPages={quizzesNumPages}
                           onPageChange={setQuizzesPage}
                           position="top"
-                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-green-500 [&>div]:to-emerald-600"
+                          progressBarClassName="bg-gray-100 [&>div]:bg-gradient-to-r [&>div]:from-blue-900 [&>div]:to-black"
                         />
                       </div>
                     )}
@@ -824,7 +825,24 @@ const ProfilePage: React.FC = () => {
                       <h3 className="font-semibold text-lg">Questions</h3>
                       
                       <div className="space-y-4">
-                        {(questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
+                        {isLoading ? (
+                          <div className="space-y-4">
+                            {[...Array(5)].map((_, i) => (
+                              <div key={`question-skeleton-${i}`} className="p-4 rounded-lg border bg-slate-50">
+                                <div className="flex justify-between items-center mb-2">
+                                  <Skeleton className="h-5 w-24" />
+                                  <Skeleton className="h-4 w-16" />
+                                </div>
+                                <Skeleton className="h-4 w-3/4 mb-2" />
+                                <div className="space-y-2">
+                                  {[...Array(4)].map((_, j) => (
+                                    <Skeleton key={j} className="h-4 w-1/2" />
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
                           const isSkipped = !q.selectedAnswers || q.selectedAnswers.length === 0;
                           
                           return (

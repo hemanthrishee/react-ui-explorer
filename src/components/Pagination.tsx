@@ -100,27 +100,11 @@ const Pagination: React.FC<PaginationProps> = ({
         </Button>
         
         <div className="flex-1 relative">
-          <Progress 
-            value={(page / numPages) * 100} 
-            className={`h-3 bg-gray-100 ${progressBarClassName}`} 
-          />
-          <div className="absolute top-0 left-0 w-full h-full flex justify-between items-center px-3 pointer-events-none">
-            {pageNumbers.map((num) => (
-              <div 
-                key={num} 
-                className={`text-xs font-medium ${num === page ? 'text-white' : 'text-gray-500'} transition-colors duration-200 flex items-center justify-center`}
-                style={{ 
-                  position: 'absolute', 
-                  left: `${((num - 1) / (numPages - 1)) * 100}%`, 
-                  transform: 'translateX(-50%)',
-                  visibility: numPages > 10 && num !== 1 && num !== numPages && num !== page && (num < page - 1 || num > page + 1) ? 'hidden' : 'visible'
-                }}
-              >
-                {num}
-              </div>
-            ))}
-          </div>
-        </div>
+  <Progress 
+    value={(page / numPages) * 100} 
+    className={`h-3 bg-gray-100 ${progressBarClassName}`} 
+  />
+</div>
         
         <Button 
           variant="outline" 
