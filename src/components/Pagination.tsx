@@ -83,24 +83,43 @@ const Pagination: React.FC<PaginationProps> = ({
   const renderCompactProgress = () => {
     if (!showProgress) return null;
     
+    // Create an array of all page numbers
+    const pageNumbers = Array.from({ length: numPages }, (_, i) => i + 1);
+    
     return (
-      <div className="flex items-center justify-between w-full mb-4 max-w-md mx-auto">
+      <div className="flex items-center justify-between w-full mb-4">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={() => handlePageChange(page - 1)}
           disabled={page === 1}
-          className="rounded-full p-0 w-8 h-8 flex items-center justify-center"
+          className="rounded-full p-0 w-8 h-8 flex items-center justify-center mr-2"
         >
           <ChevronLeft className="h-4 w-4" />
           <span className="sr-only">Previous</span>
         </Button>
         
-        <div className="flex-1 mx-3">
+        <div className="flex-1 relative">
           <Progress 
             value={(page / numPages) * 100} 
-            className={`h-2 bg-gray-100 ${progressBarClassName}`} 
+            className={`h-3 bg-gray-100 ${progressBarClassName}`} 
           />
+          <div className="absolute top-0 left-0 w-full h-full flex justify-between items-center px-3 pointer-events-none">
+            {pageNumbers.map((num) => (
+              <div 
+                key={num} 
+                className={`text-xs font-medium ${num === page ? 'text-white' : 'text-gray-500'} transition-colors duration-200 flex items-center justify-center`}
+                style={{ 
+                  position: 'absolute', 
+                  left: `${((num - 1) / (numPages - 1)) * 100}%`, 
+                  transform: 'translateX(-50%)',
+                  visibility: numPages > 10 && num !== 1 && num !== numPages && num !== page && (num < page - 1 || num > page + 1) ? 'hidden' : 'visible'
+                }}
+              >
+                {num}
+              </div>
+            ))}
+          </div>
         </div>
         
         <Button 
@@ -108,7 +127,7 @@ const Pagination: React.FC<PaginationProps> = ({
           size="sm" 
           onClick={() => handlePageChange(page + 1)}
           disabled={page === numPages}
-          className="rounded-full p-0 w-8 h-8 flex items-center justify-center"
+          className="rounded-full p-0 w-8 h-8 flex items-center justify-center ml-2"
         >
           <ChevronRight className="h-4 w-4" />
           <span className="sr-only">Next</span>
