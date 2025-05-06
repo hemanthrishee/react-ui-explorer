@@ -58,35 +58,17 @@ interface Question {
   timeTaken: number;
 }
 
-// Helper function to format time in seconds to YY:mm:DD:HH:MM:SS
+// Helper function to format time in seconds to compact form, e.g. '1h 5m 32s'
 const formatTime = (seconds: number): string => {
-  const years = Math.floor(seconds / (365 * 24 * 3600));
-  const remainingSeconds = seconds % (365 * 24 * 3600);
-  
-  const months = Math.floor(remainingSeconds / (30 * 24 * 3600));
-  const remainingSeconds2 = remainingSeconds % (30 * 24 * 3600);
-  
-  const days = Math.floor(remainingSeconds2 / (24 * 3600));
-  const remainingSeconds3 = remainingSeconds2 % (24 * 3600);
-  
-  const hours = Math.floor(remainingSeconds3 / 3600);
-  const remainingSeconds4 = remainingSeconds3 % 3600;
-  
-  const minutes = Math.floor(remainingSeconds4 / 60);
-  const remainingSeconds5 = remainingSeconds4 % 60;
-  
-  const pad = (num: number) => num.toString().padStart(2, '0');
-  
-  const parts = [];
-  
-  if (years > 0) parts.push(pad(years));
-  if (months > 0 || parts.length > 0) parts.push(pad(months));
-  if (days > 0 || parts.length > 0) parts.push(pad(days));
-  if (hours > 0 || parts.length > 0) parts.push(pad(hours));
-  if (minutes > 0 || parts.length > 0) parts.push(pad(minutes));
-  parts.push(pad(remainingSeconds5));
-  
-  return parts.join(':');
+  const units = [
+    { label: 'h', value: Math.floor(seconds / 3600) },
+    { label: 'm', value: Math.floor((seconds % 3600) / 60) },
+    { label: 's', value: seconds % 60 }
+  ];
+  return units
+    .filter(unit => unit.value > 0)
+    .map(unit => `${unit.value}${unit.label}`)
+    .join(' ') || '0s';
 };
 
 // Helper function to convert seconds to minutes for charts
