@@ -178,6 +178,9 @@ const ProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [totalTopicsCount, setTotalTopicsCount] = useState(0);
+  const [quizzesTotalCount, setQuizzesTotalCount] = useState(0);
+  const [questionsTotalCount, setQuestionsTotalCount] = useState(0);
 
   // Fetch topics and stats on mount
   useEffect(() => {
@@ -192,6 +195,7 @@ const ProfilePage: React.FC = () => {
         const topicsData = await topicsResponse.json();
         if (topicsData.status !== 'success') throw new Error(topicsData.message);
         setTopics(topicsData.topics);
+        setTotalTopicsCount(topicsData.total_topics);
         setTopicsNumPages(topicsData.num_pages);
         // Fetch stats
         setIsStatsLoading(true);
@@ -225,6 +229,7 @@ const ProfilePage: React.FC = () => {
         const quizzesData = await quizzesResponse.json();
         if (quizzesData.status !== 'success') throw new Error(quizzesData.message);
         setQuizzes(quizzesData.quizzes);
+        setQuizzesTotalCount(quizzesData.total_quizzes);
         setQuizzesNumPages(quizzesData.num_pages);
       } catch (err: any) {
         toast.error(`Failed to load quizzes, ${err.message}`);
@@ -248,6 +253,7 @@ const ProfilePage: React.FC = () => {
         const questionsData = await questionsResponse.json();
         if (questionsData.status !== 'success') throw new Error(questionsData.message);
         setQuestions(questionsData.questions);
+        setQuestionsTotalCount(questionsData.total_questions);
         setQuestionsNumPages(questionsData.num_pages);
       } catch (err: any) {
         toast.error(`Failed to load questions, ${err.message}`);
@@ -393,12 +399,30 @@ const ProfilePage: React.FC = () => {
   </Card>
 ))}
 {topicsNumPages > 1 && (
-  <Pagination
-    page={topicsPage}
-    numPages={topicsNumPages}
-    onPageChange={setTopicsPage}
-    className="mt-4"
-  />
+  <>
+    <div className="flex items-center justify-between mt-4 mb-2">
+      <span className="text-sm text-gray-600">
+        Viewing {topics.length} out of {totalTopicsCount || 0} topics
+      </span>
+      <div className="flex-1 mx-4">
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div
+            className="bg-blue-500 h-2 rounded-full"
+            style={{ width: `${(topicsPage / topicsNumPages) * 100}%` }}
+          />
+        </div>
+      </div>
+      <span className="text-xs text-gray-500">
+        Page {topicsPage} / {topicsNumPages}
+      </span>
+    </div>
+    <Pagination
+      page={topicsPage}
+      numPages={topicsNumPages}
+      onPageChange={setTopicsPage}
+      className="mt-2"
+    />
+  </>
 )}
                   </div>
                 ) : (
@@ -456,12 +480,30 @@ const ProfilePage: React.FC = () => {
     </Card>
   ))}
   {quizzesNumPages > 1 && (
-    <Pagination
-      page={quizzesPage}
-      numPages={quizzesNumPages}
-      onPageChange={setQuizzesPage}
-      className="mt-4"
-    />
+    <>
+      <div className="flex items-center justify-between mt-4 mb-2">
+        <span className="text-sm text-gray-600">
+          Viewing {quizzes.length} out of {quizzesTotalCount || 0} quizzes
+        </span>
+        <div className="flex-1 mx-4">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-green-500 h-2 rounded-full"
+              style={{ width: `${(quizzesPage / quizzesNumPages) * 100}%` }}
+            />
+          </div>
+        </div>
+        <span className="text-xs text-gray-500">
+          Page {quizzesPage} / {quizzesNumPages}
+        </span>
+      </div>
+      <Pagination
+        page={quizzesPage}
+        numPages={quizzesNumPages}
+        onPageChange={setQuizzesPage}
+        className="mt-2"
+      />
+    </>
   )}
 </>
                     </div>
@@ -824,12 +866,30 @@ const ProfilePage: React.FC = () => {
                           );
                         })}
                       {questionsNumPages > 1 && (
-    <Pagination
-      page={questionsPage}
-      numPages={questionsNumPages}
-      onPageChange={setQuestionsPage}
-      className="mt-4"
-    />
+    <>
+      <div className="flex items-center justify-between mt-4 mb-2">
+        <span className="text-sm text-gray-600">
+          Viewing {questions.length} out of {questionsTotalCount || 0} questions
+        </span>
+        <div className="flex-1 mx-4">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-purple-500 h-2 rounded-full"
+              style={{ width: `${(questionsPage / questionsNumPages) * 100}%` }}
+            />
+          </div>
+        </div>
+        <span className="text-xs text-gray-500">
+          Page {questionsPage} / {questionsNumPages}
+        </span>
+      </div>
+      <Pagination
+        page={questionsPage}
+        numPages={questionsNumPages}
+        onPageChange={setQuestionsPage}
+        className="mt-2"
+      />
+    </>
   )}
   </>
   </div>
