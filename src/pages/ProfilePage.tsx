@@ -894,24 +894,25 @@ const ProfilePage: React.FC = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                      <div className="flex flex-row flex-wrap gap-2 justify-between items-center p-4 bg-gray-50 rounded-lg">
+
                         <div className="flex items-center gap-2">
                           <Award className="h-5 w-5 text-amber-500" />
-                          <div>
+                          <div className="min-w-0 whitespace-nowrap">
                             <div className="text-sm text-gray-500">Percentage</div>
                             <div className="font-bold text-xl">{selectedQuiz.percentage}%</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <BookCheck className="h-5 w-5 text-blue-500" />
-                          <div>
+                          <div className="min-w-0 whitespace-nowrap">
                             <div className="text-sm text-gray-500">Points</div>
                             <div className="font-bold text-xl">{selectedQuiz.score} / {selectedQuiz.total_possible_score}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full justify-center sm:w-auto sm:justify-start">
                           <Clock className="h-5 w-5 text-purple-500" />
-                          <div>
+                          <div className="min-w-0 whitespace-nowrap">
                             <div className="text-sm text-gray-500">Time</div>
                             <div className="font-bold text-xl">{formatTime(selectedQuiz.timeSpent)}</div>
                           </div>
@@ -922,15 +923,16 @@ const ProfilePage: React.FC = () => {
                       {/* Download buttons for quiz export options */}
                       <div>
                         <div>
-                          <div className="mb-4 p-4 bg-white rounded-lg shadow flex items-center justify-center border border-gray-200 gap-4">
+                          <div className="mb-4 p-4 bg-white rounded-lg shadow flex flex-col gap-2 items-stretch border border-gray-200 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
+
                             <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="w-64 flex justify-between items-center">
+                            <Button variant="outline" size="sm" className="w-full sm:w-64 flex justify-between items-center text-center">
                               <span>Download Quiz</span>
                               <ChevronRight className="ml-2 w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="min-w-[260px]">
+                          <DropdownMenuContent align="start" className="min-w-[200px] w-full max-w-xs md:min-w-[260px]">
                             <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Questions Only</div>
                             <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'txt')}>
                               <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
@@ -956,7 +958,7 @@ const ProfilePage: React.FC = () => {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button variant="default" size="sm" className="w-64 flex justify-center items-center" onClick={handleDownloadReportCard} disabled={reportLoading}>
+                        <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={handleDownloadReportCard} disabled={reportLoading}>
                           <FileDown className="w-4 h-4 mr-2" />
                           {reportLoading ? 'Generating Report...' : 'Download Report Card'}
                         </Button>
