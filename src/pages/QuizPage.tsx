@@ -15,6 +15,21 @@ import {
   Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from '@/components/ui/dropdown-menu';
+import { FileText, FileSignature, FileDown, ChevronRight } from 'lucide-react';
+import {
+  generateQuizQuestionsOnly,
+  generateQuizWithAttempts,
+  generateQuizAnswerKey,
+  downloadTextFile,
+  downloadPdfFile
+} from '../downloadQuizUtils';
+import html2canvas from 'html2canvas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -731,6 +746,161 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   questionResults,
   negativeMarking
 }) => {
+  const [reportLoading, setReportLoading] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // Download Report Card as PDF (UI snapshot)
+  const handleDownloadReportCard = async () => {
+    if (!resultRef.current) return;
+    setReportLoading(true);
+    // Save previous styles
+    const prevStyle = {
+      overflow: resultRef.current.style.overflow,
+      height: resultRef.current.style.height,
+      maxHeight: resultRef.current.style.maxHeight,
+    };
+    // Remove constraints for full-content screenshot
+    resultRef.current.style.overflow = 'visible';
+    resultRef.current.style.height = 'auto';
+    resultRef.current.style.maxHeight = 'none';
+    // Also patch all children with overflow/height set (optional but recommended)
+    const scrollables = resultRef.current.querySelectorAll('[style*="overflow"], [class*="overflow"]');
+    const prevChildStyles: {el: HTMLElement, style: {overflow: string, height: string, maxHeight: string}}[] = [];
+    scrollables.forEach((el: any) => {
+      prevChildStyles.push({
+        el,
+        style: {
+          overflow: el.style.overflow,
+          height: el.style.height,
+          maxHeight: el.style.maxHeight
+        }
+      });
+      el.style.overflow = 'visible';
+      el.style.height = 'auto';
+      el.style.maxHeight = 'none';
+    });
+    try {
+      const canvas = await html2canvas(resultRef.current, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const jsPDF = (await import('jspdf')).jsPDF;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 40;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+
+      let position = 20;
+      let remainingHeight = imgHeight;
+      let pageImgY = 0;
+      const pageImgHeight = pageHeight - 40;
+
+      while (remainingHeight > 0) {
+        // Calculate the portion of the image to print on this page
+        let sX = 0;
+        let sY = pageImgY;
+        let sWidth = canvas.width;
+        // For the last page, use the true remaining height
+        let isLastPage = remainingHeight <= pageImgHeight;
+        let sHeight = isLastPage
+          ? (canvas.height - sY)
+          : Math.min(canvas.height - sY, (pageImgHeight * canvas.width / imgWidth));
+        // Create a temp canvas for this page
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sHeight;
+        const ctx = pageCanvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(canvas, sX, sY, sWidth, sHeight, 0, 0, sWidth, sHeight);
+        }
+        const pageImgData = pageCanvas.toDataURL('image/png');
+        // For the last page, use the true height
+        if (isLastPage) {
+          const lastPageImgHeight = (sHeight * imgWidth) / canvas.width;
+          pdf.addImage(pageImgData, 'PNG', 20, 20, imgWidth, lastPageImgHeight);
+        } else {
+          pdf.addImage(pageImgData, 'PNG', 20, 20, imgWidth, pageImgHeight);
+        }
+        remainingHeight -= pageImgHeight;
+        pageImgY += sHeight;
+        if (!isLastPage && remainingHeight > 0) pdf.addPage();
+      }
+      pdf.save(`${quizData.topic || 'quiz'}_report_card.pdf`);
+    } catch (e) {
+      // Optionally show error
+    }
+    // Restore previous styles
+    resultRef.current.style.overflow = prevStyle.overflow;
+    resultRef.current.style.height = prevStyle.height;
+    resultRef.current.style.maxHeight = prevStyle.maxHeight;
+    prevChildStyles.forEach(({el, style}) => {
+      el.style.overflow = style.overflow;
+      el.style.height = style.height;
+      el.style.maxHeight = style.maxHeight;
+    });
+    setReportLoading(false);
+  };
+
+
+
+  // Download handler for quiz export options
+  const handleDownloadQuiz = async (
+    mode: 'questionsOnly' | 'withAttempts' | 'answerKey',
+    filetype: 'txt' | 'pdf' = 'txt'
+  ) => {
+    if (!quizData) return;
+    // Construct a full Quiz object for export
+    const now = new Date();
+    const quizToExport = {
+      id: 'quiz', // fallback since QuizData has no id
+      topic: quizData.topic,
+      subtopic: '', // fallback since QuizData has no subtopic
+      date: now.toISOString(),
+      percentage: 0,
+      total_possible_score: quizData.questions.length * 4,
+      score: 0,
+      timeSpent: 0,
+      negativeMarking: typeof negativeMarking === 'boolean' ? negativeMarking : false,
+      question_type: quizData.questions[0]?.type || 'mcq',
+      questions: quizData.questions.map((q, idx) => ({
+        ...q,
+        correctAnswers: q.correct_answers || [],
+        selectedAnswers: selectedAnswers[idx] || [],
+        isCorrect: false,
+        partiallyCorrect: false,
+        score: 0,
+        explanation: q.explanation || '',
+        timeTaken: 0,
+      }))
+    };
+    
+    let content = '';
+    let filename = '';
+    // Optionally, calculate score and percentage for the exported quiz
+    quizToExport.score = quizToExport.questions.reduce((acc, q) => acc + (q.score || 0), 0);
+    quizToExport.percentage = quizToExport.total_possible_score > 0 ? Math.round((quizToExport.score / quizToExport.total_possible_score) * 100) : 0;
+
+    switch (mode) {
+      case 'questionsOnly':
+        content = generateQuizQuestionsOnly(quizToExport);
+        filename = `${quizData.topic || 'quiz'}_questions.txt`;
+        break;
+      case 'withAttempts':
+        content = generateQuizWithAttempts(quizToExport);
+        filename = `${quizData.topic || 'quiz'}_attempts_and_answers.txt`;
+        break;
+      case 'answerKey':
+        content = generateQuizAnswerKey(quizToExport);
+        filename = `${quizData.topic || 'quiz'}_answer_key.txt`;
+        break;
+      default:
+        return;
+    }
+    if (filetype === 'pdf') {
+      await downloadPdfFile(filename.replace(/\.txt$/, '.pdf'), content);
+    } else {
+      downloadTextFile(filename, content);
+    }
+  };
   const [showExplanations, setShowExplanations] = useState<boolean>(true);
   
   const totalPoints = Object.values(questionResults).reduce((sum, result) => sum + result.score, 0);
@@ -763,8 +933,47 @@ const QuizResults: React.FC<QuizResultsProps> = ({
             You've completed the {quizData.topic} quiz
           </CardDescription>
         </CardHeader>
-        
-        <CardContent className="space-y-6">
+        <CardContent ref={resultRef} className="space-y-6">
+          {/* Download buttons for quiz export options */}
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center sm:justify-center mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full sm:w-64 flex justify-between items-center text-center">
+                  <span>Download Quiz</span>
+                  <ChevronRight className="ml-2 w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[200px] w-full max-w-xs md:min-w-[260px]">
+                <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Questions Only</div>
+                <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'txt')}>
+                  <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'pdf')}>
+                  <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                </DropdownMenuItem>
+                <div className="my-1 border-t" />
+                <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">With Attempts & Answers</div>
+                <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'txt')}>
+                  <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'pdf')}>
+                  <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                </DropdownMenuItem>
+                <div className="my-1 border-t" />
+                <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Answer Key</div>
+                <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'txt')}>
+                  <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'pdf')}>
+                  <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={handleDownloadReportCard} disabled={reportLoading}>
+              <FileDown className="w-4 h-4 mr-2" />
+              {reportLoading ? 'Generating Report...' : 'Download Report Card'}
+            </Button>
+          </div>
           <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg">
             <div className="text-4xl font-bold mb-2 text-center">
               <span className={getScoreColor(scorePercentage)}>
