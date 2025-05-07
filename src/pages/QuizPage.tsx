@@ -786,8 +786,8 @@ const QuizResults: React.FC<QuizResultsProps> = ({
       el.style.maxHeight = 'none';
     });
     try {
-      const canvas = await html2canvas(resultRef.current, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
+      const canvas = await html2canvas(resultRef.current, { scale: 1.2, useCORS: true });
+      const imgData = canvas.toDataURL('image/jpeg', 1);
       const jsPDF = (await import('jspdf')).jsPDF;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
