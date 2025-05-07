@@ -237,33 +237,38 @@ const QuizPage: React.FC = () => {
         return { score: 0, isCorrect: false };
       }
     } else if (question.type === 'multiple-correct') {
-      const correctAnswersSelected = userAnswers.filter(answer => 
+      const correctAnswersSelected = userAnswers.filter(answer =>
         question.correct_answers.includes(answer)
       ).length;
-      
-      const incorrectAnswersSelected = userAnswers.filter(answer => 
+
+      const incorrectAnswersSelected = userAnswers.filter(answer =>
         !question.correct_answers.includes(answer)
       ).length;
-      
-      // If any incorrect option is selected, score is -2
-      if (incorrectAnswersSelected > 0) {
+
+      // If negative marking is enabled and any incorrect option is selected, score is -2
+      if (quizConfig.negativeMarking && incorrectAnswersSelected > 0) {
         return { score: -2, isCorrect: false };
       }
-      
+
+      // If negative marking is disabled and any incorrect option is selected, score is 0 (no penalty)
+      if (!quizConfig.negativeMarking && incorrectAnswersSelected > 0) {
+        return { score: 0, isCorrect: false };
+      }
+
       // If all correct answers are selected, score is +4
       if (correctAnswersSelected === question.correct_answers.length) {
         return { score: 4, isCorrect: true };
       }
-      
+
       // Partial marking: +1 for each correct answer selected
       if (correctAnswersSelected > 0) {
-        return { 
-          score: correctAnswersSelected, 
+        return {
+          score: correctAnswersSelected,
           isCorrect: false,
           partiallyCorrect: true
         };
       }
-      
+
       return { score: 0, isCorrect: false };
     }
     
@@ -1035,8 +1040,8 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                       </span>
                     ) : (
                       <span className="flex items-center text-red-600 text-sm font-medium">
-                        <X className="h-4 w-4 mr-1" /> 
-                        Incorrect {result.score < 0 ? `(${result.score})` : ''}
+                        <X className="h-4 w-4 mr-1" />
+                        Incorrect {negativeMarking && result.score < 0 ? `(${result.score})` : ''}
                       </span>
                     )}
                   </div>
@@ -1136,7 +1141,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                     </div>
                   )}
                   
-                  {!result.isCorrect && !result.partiallyCorrect && result.score < 0 && (
+                  {!result.isCorrect && !result.partiallyCorrect && result.score < 0 && negativeMarking && (
                     <div className="mt-2 text-sm text-red-600">
                       Negative marking: {result.score} points for selecting incorrect option{result.score < -1 ? 's' : ''}
                     </div>
