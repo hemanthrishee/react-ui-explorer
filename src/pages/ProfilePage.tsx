@@ -30,6 +30,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
+import { generateQuizQuestionsOnly, generateQuizWithAttempts, generateQuizAnswerKey, downloadTextFile, downloadPdfFile } from '../downloadQuizUtils';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { FileText, FileSignature, FileDown } from 'lucide-react';
+import html2canvas from 'html2canvas';
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 interface Quiz {
@@ -144,6 +148,73 @@ const AnimatedChart = ({ children, className = '' }: { children: React.ReactNode
 };
 
 const ProfilePage: React.FC = () => {
+  // ...existing state and hooks...
+  const [reportLoading, setReportLoading] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  // Download the report card as a PDF (UI snapshot)
+  const handleDownloadReportCard = async () => {
+    if (!reportRef.current) return;
+    setReportLoading(true);
+    try {
+      const canvas = await html2canvas(reportRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const jsPDF = (await import('jspdf')).jsPDF;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      // Calculate image dimensions to fit A4
+      const imgWidth = pageWidth - 40;
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+      pdf.save(`${selectedQuiz?.topic || 'quiz'}_report_card.pdf`);
+    } catch (e) {
+      // Optionally show error
+    }
+    setReportLoading(false);
+  };
+
+  // ...existing state and hooks...
+
+  // Download handler for quiz export options
+  const handleDownloadQuiz = async (
+  mode: 'questionsOnly' | 'withAttempts' | 'answerKey',
+  filetype: 'txt' | 'pdf' = 'txt'
+) => {
+    if (!selectedQuiz) return;
+    // Ensure we use the full quiz object, not just the paginated questions
+    let quizToExport = { ...selectedQuiz };
+    const selQuizQuestions = Array.isArray(selectedQuiz.questions) ? selectedQuiz.questions : [];
+    const loadedQuestions = Array.isArray(questions) ? questions : [];
+    // If all questions are not loaded in selectedQuiz, try to merge in all questions if available
+    if (loadedQuestions.length > 0 && loadedQuestions.length !== selQuizQuestions.length) {
+      quizToExport.questions = loadedQuestions;
+    }
+    let content = '';
+    let filename = '';
+    switch (mode) {
+      case 'questionsOnly':
+        content = generateQuizQuestionsOnly(quizToExport);
+        filename = `${selectedQuiz.topic || 'quiz'}_questions.txt`;
+        break;
+      case 'withAttempts':
+        content = generateQuizWithAttempts(quizToExport);
+        filename = `${selectedQuiz.topic || 'quiz'}_attempts_and_answers.txt`;
+        break;
+      case 'answerKey':
+        content = generateQuizAnswerKey(quizToExport);
+        filename = `${selectedQuiz.topic || 'quiz'}_answer_key.txt`;
+        break;
+      default:
+        return;
+    }
+    if (filetype === 'pdf') {
+      await downloadPdfFile(filename.replace(/\.txt$/, '.pdf'), content);
+    } else {
+      downloadTextFile(filename, content);
+    }
+  };
+
   const navigate = useNavigate();
   const { user: authUser, logout, isAuthenticated } = useAuth();
   const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
@@ -815,7 +886,7 @@ const ProfilePage: React.FC = () => {
                     </div>
                   )}
                   
-                  <Card>
+                  <Card ref={reportRef}>
                     <CardHeader>
                       <CardTitle>Quiz Summary</CardTitle>
                       <CardDescription>
@@ -847,8 +918,154 @@ const ProfilePage: React.FC = () => {
                         </div>
                       </div>
                       <Separator />
-                      
-                      <h3 className="font-semibold text-lg">Questions</h3>
+
+                      {/* Download buttons for quiz export options */}
+                      <div>
+                        <div>
+                          <div className="mb-4 p-4 bg-white rounded-lg shadow flex items-center justify-center border border-gray-200 gap-4">
+                            <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-64 flex justify-between items-center">
+                              <span>Download Quiz</span>
+                              <ChevronRight className="ml-2 w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="min-w-[260px]">
+                            <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Questions Only</div>
+                            <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'txt')}>
+                              <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'pdf')}>
+                              <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                            </DropdownMenuItem>
+                            <div className="my-1 border-t" />
+                            <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">With Attempts & Answers</div>
+                            <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'txt')}>
+                              <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'pdf')}>
+                              <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                            </DropdownMenuItem>
+                            <div className="my-1 border-t" />
+                            <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Answer Key</div>
+                            <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'txt')}>
+                              <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'pdf')}>
+                              <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button variant="default" size="sm" className="w-64 flex justify-center items-center" onClick={handleDownloadReportCard} disabled={reportLoading}>
+                          <FileDown className="w-4 h-4 mr-2" />
+                          {reportLoading ? 'Generating Report...' : 'Download Report Card'}
+                        </Button>
+                        </div>
+                        {/* End of summary card in reportRef */}
+                        <h3 className="font-semibold text-lg">Questions</h3>
+                        <div className="space-y-4">
+                          {isLoading ? (
+                            <div className="space-y-4">
+                              {[...Array(5)].map((_, i) => (
+                                <div key={`question-skeleton-${i}`} className="p-4 rounded-lg border bg-slate-50">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <Skeleton className="h-5 w-24" />
+                                    <Skeleton className="h-4 w-16" />
+                                  </div>
+                                  <Skeleton className="h-4 w-3/4 mb-2" />
+                                  <div className="space-y-2">
+                                    {[...Array(4)].map((_, j) => (
+                                      <Skeleton key={j} className="h-4 w-1/2" />
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (questions && questions.length > 0 ? questions : []).map((q: any, i: number) => {
+                            const isSkipped = !q.selectedAnswers || q.selectedAnswers.length === 0;
+                            return (
+                              <div 
+                                key={i} 
+                                className={`p-4 rounded-lg border ${
+                                  q.isCorrect 
+                                    ? 'border-green-200 bg-green-50' 
+                                    : q.partiallyCorrect 
+                                      ? 'border-amber-200 bg-amber-50'
+                                      : isSkipped
+                                        ? 'border-slate-200 bg-slate-50'
+                                        : 'border-red-200 bg-red-50'
+                                }`}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <h4 className="font-medium">Question {i + 1}</h4>
+                                  {q.isCorrect ? (
+                                    <span className="flex items-center text-green-600 text-sm font-medium">
+                                      <Check className="h-4 w-4 mr-1" /> Correct (+{q.score})
+                                    </span>
+                                  ) : isSkipped ? (
+                                    <span className="flex items-center text-slate-600 text-sm font-medium">
+                                      <HelpCircle className="h-4 w-4 mr-1" /> Not Attempted
+                                    </span>
+                                  ) : q.partiallyCorrect ? (
+                                    <span className="flex items-center text-amber-600 text-sm font-medium">
+                                      <AlertCircle className="h-4 w-4 mr-1" /> Partially Correct (+{q.score})
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center text-red-600 text-sm font-medium">
+                                      <X className="h-4 w-4 mr-1" /> 
+                                      Incorrect {selectedQuiz.negativeMarking ? `(${q.score})` : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-2">{q.question}</p>
+                                <div className="mt-3 space-y-2">
+                                  {q.options.map((option: string, optIdx: number) => {
+                                    const isUserSelected = q.selectedAnswers?.includes(optIdx);
+                                    const isCorrectOption = q.correctAnswers.includes(optIdx);
+                                    let className = "pl-2 py-1 border-l-2 ";
+                                    if (isUserSelected && isCorrectOption) {
+                                      className += "border-green-500 bg-green-100";
+                                    } else if (isUserSelected && !isCorrectOption) {
+                                      className += "border-red-500 bg-red-100";
+                                    } else if (!isUserSelected && isCorrectOption) {
+                                      className += "border-amber-500 bg-amber-100";
+                                    } else {
+                                      className += "border-transparent";
+                                    }
+                                    return (
+                                      <div key={optIdx} className={className}>
+                                        <div className="flex items-start gap-2">
+                                          {selectedQuiz.question_type === 'multiple-correct' ? (
+                                            isCorrectOption ? (
+                                              <CheckSquare className="h-4 w-4 text-green-600 mt-0.5" />
+                                            ) : (
+                                              <Square className="h-4 w-4 text-slate-400 mt-0.5" />
+                                            )
+                                          ) : (
+                                            <div className="relative flex h-4 w-4 items-center justify-center">
+                                              <div className={`h-3 w-3 rounded-full ${isCorrectOption ? 'bg-green-500' : 'bg-slate-200'}`}></div>
+                                            </div>
+                                          )}
+                                          <span>{option}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {q.explanation && (
+                                  <div className="mt-4 text-sm bg-white p-3 rounded border border-slate-200">
+                                    <span className="font-medium">Explanation:</span> {q.explanation}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* End of questions list in reportRef */}
+                        </div>
+                        {/* Download/report buttons outside the ref-wrapped area */}
+                      </div>
+
                       
                       <div className="space-y-4">
                         {isLoading ? (
