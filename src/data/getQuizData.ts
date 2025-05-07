@@ -25,6 +25,7 @@ export const getQuizByTopic = async (topic: string, question_type: string, num_q
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify({
         topic: lowerCaseTopic,
         num_questions: num_questions,

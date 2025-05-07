@@ -125,6 +125,7 @@ const Header: React.FC = () => {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify(requestBody),
     })
     .then(response => response.json())
@@ -151,6 +152,7 @@ const Header: React.FC = () => {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify(requestBody),
     })
     .then(response => response.json())
@@ -177,6 +179,7 @@ const Header: React.FC = () => {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify(requestBody),
     })
     .then(response => response.json())

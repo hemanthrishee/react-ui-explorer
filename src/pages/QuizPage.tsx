@@ -343,6 +343,7 @@ const QuizPage: React.FC = () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         total_time_taken: quizConfig.duration * 60 - timeRemaining,
         score: totalScore,

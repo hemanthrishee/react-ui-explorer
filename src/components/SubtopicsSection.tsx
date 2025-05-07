@@ -128,6 +128,7 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify(requestBody),
     })
     .then(response => response.json())
@@ -154,6 +155,7 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify(requestBody),
     })
     .then(response => response.json())
@@ -180,6 +182,7 @@ const SubtopicsSection: React.FC<SubTopicsSectionProps> = ({ subTopics, topicNam
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
+      credentials: 'include',
       body: JSON.stringify(requestBody),
     })
     .then(response => response.json())
