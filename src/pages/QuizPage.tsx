@@ -787,7 +787,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
     });
     try {
       const canvas = await html2canvas(resultRef.current, { scale: 1.2, useCORS: true });
-      const imgData = canvas.toDataURL('image/jpeg', 1);
+      // const imgData = canvas.toDataURL('image/jpeg', 1);
       const jsPDF = (await import('jspdf')).jsPDF;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -818,7 +818,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
         if (ctx) {
           ctx.drawImage(canvas, sX, sY, sWidth, sHeight, 0, 0, sWidth, sHeight);
         }
-        const pageImgData = pageCanvas.toDataURL('image/png');
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 1);
         // For the last page, use the true height
         if (isLastPage) {
           const lastPageImgHeight = (sHeight * imgWidth) / canvas.width;
