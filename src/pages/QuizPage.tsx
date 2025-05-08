@@ -818,7 +818,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
         if (ctx) {
           ctx.drawImage(canvas, sX, sY, sWidth, sHeight, 0, 0, sWidth, sHeight);
         }
-        const pageImgData = pageCanvas.toDataURL('image/jpeg', 1);
+        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.8);
         // For the last page, use the true height
         if (isLastPage) {
           const lastPageImgHeight = (sHeight * imgWidth) / canvas.width;
