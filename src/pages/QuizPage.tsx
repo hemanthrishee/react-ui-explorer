@@ -26,8 +26,8 @@ import {
   generateQuizQuestionsOnly,
   generateQuizWithAttempts,
   generateQuizAnswerKey,
-  downloadTextFile,
-  downloadPdfFile
+  uploadTextFile,
+  uploadPdfFile,
 } from '../downloadQuizUtils';
 import html2canvas from 'html2canvas';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,6 +86,7 @@ const QuizPage: React.FC = () => {
     partiallyCorrect?: boolean;
     score: number;
   }>>({});
+  const [quiz_attempt_id, setQuizAttemptId] = useState(0);
 
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -275,7 +276,7 @@ const QuizPage: React.FC = () => {
     return { score: 0, isCorrect: false };
   };
   
-  const endQuiz = useCallback(() => {
+  const endQuiz = useCallback(async () => {
     setQuizEnded(true);
     
     if (!quizData) return;
@@ -343,41 +344,43 @@ const QuizPage: React.FC = () => {
     });
     
     // Call the save quiz attempt API
-    fetch(API_URL + '/quiz/save-quiz-attempt', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        total_time_taken: quizConfig.duration * 60 - timeRemaining,
-        score: totalScore,
-        correct_attempts: correctAttempts,
-        incorrect_attempts: incorrectAttempts,
-        partial_attempts: partialAttempts,
-        unattempted: unattempted,
-        is_negative_marking: quizConfig.negativeMarking,
-        question_attempts: questionAttempts,
-        topic: quizData.topic,
-        subtopic: subTopic,
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+      const response = await fetch(API_URL + '/quiz/save-quiz-attempt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          total_time_taken: quizConfig.duration * 60 - timeRemaining,
+          score: totalScore,
+          correct_attempts: correctAttempts,
+          incorrect_attempts: incorrectAttempts,
+          partial_attempts: partialAttempts,
+          unattempted: unattempted,
+          is_negative_marking: quizConfig.negativeMarking,
+          question_attempts: questionAttempts,
+          topic: quizData.topic,
+          subtopic: subTopic,
+        })
+      });
+
+      const data = await response.json();
+      
       if (data.status === 'success') {
+        setQuizAttemptId(data.quiz_attempt_id);
         toast.success('Quiz attempt saved successfully');
       } else {
         toast.error('Failed to save quiz attempt');
       }
-    })
-    .catch(err => {
+    } catch (err: any) {
       if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-        throw new Error('No internet connection. Please check your connection.');
+      throw new Error('No internet connection. Please check your connection.');
       }
       console.error('Error saving quiz attempt:', err);
       toast.error('Failed to save quiz attempt');
       throw new Error('Failed to save quiz attempt');
-    });
+    }
     
     toast.success(`Quiz completed! Your score: ${scorePercentage}%`);
   }, [quizData, selectedAnswers, quizConfig.negativeMarking, quizConfig.duration, timeRemaining, questionStartTimes, questionTotalTimes, activeQuestionIndex, user]);
@@ -571,6 +574,7 @@ const QuizPage: React.FC = () => {
       onReturnToTopic={() => navigate(`/topic/${topic}`)}
       questionResults={questionResults}
       negativeMarking={quizConfig.negativeMarking}
+      quiz_attempt_id={quiz_attempt_id}
     />;
   }
   
@@ -741,6 +745,7 @@ interface QuizResultsProps {
     score: number;
   }>;
   negativeMarking: boolean;
+  quiz_attempt_id: number;
 }
 
 const QuizResults: React.FC<QuizResultsProps> = ({ 
@@ -750,13 +755,40 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   score,
   onReturnToTopic,
   questionResults,
-  negativeMarking
+  negativeMarking,
+  quiz_attempt_id
 }) => {
   const [reportLoading, setReportLoading] = useState(false);
+  const [filesUploaded, setFilesUploaded] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
+  // Auto-upload all quiz files after quiz_attempt_id is available and files not yet uploaded
+  useEffect(() => {
+    if (!quiz_attempt_id || filesUploaded || !quizData) return;
+    (async () => {
+      try {
+        Promise.all([
+          handleUploadQuiz('questionsOnly', 'txt', quiz_attempt_id),
+          handleUploadQuiz('questionsOnly', 'pdf', quiz_attempt_id),
+          handleUploadQuiz('withAttempts', 'txt', quiz_attempt_id),
+          handleUploadQuiz('withAttempts', 'pdf', quiz_attempt_id),
+          handleUploadQuiz('answerKey', 'txt', quiz_attempt_id),
+          handleUploadQuiz('answerKey', 'pdf', quiz_attempt_id),
+          handleUploadReportCard(quiz_attempt_id)
+        ]).then(() => {
+          setFilesUploaded(true);
+        })
+        .catch(err => {
+          console.error('Error uploading files:', err);
+        });
+      } catch (err) {
+        // Optionally handle upload errors
+      }
+    })();
+  }, [quiz_attempt_id, filesUploaded, quizData, negativeMarking, selectedAnswers]);
+
   // Download Report Card as PDF (UI snapshot)
-  const handleDownloadReportCard = async () => {
+  const handleUploadReportCard = async (quiz_attempt_id?: number) => {
     if (!resultRef.current) return;
     setReportLoading(true);
     // Save previous styles
@@ -787,30 +819,24 @@ const QuizResults: React.FC<QuizResultsProps> = ({
     });
     try {
       const canvas = await html2canvas(resultRef.current, { scale: 1.2, useCORS: true });
-      // const imgData = canvas.toDataURL('image/jpeg', 1);
       const jsPDF = (await import('jspdf')).jsPDF;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = pageWidth - 40;
       const imgHeight = canvas.height * imgWidth / canvas.width;
-
       let position = 20;
       let remainingHeight = imgHeight;
       let pageImgY = 0;
       const pageImgHeight = pageHeight - 40;
-
       while (remainingHeight > 0) {
-        // Calculate the portion of the image to print on this page
         let sX = 0;
         let sY = pageImgY;
         let sWidth = canvas.width;
-        // For the last page, use the true remaining height
         let isLastPage = remainingHeight <= pageImgHeight;
         let sHeight = isLastPage
           ? (canvas.height - sY)
           : Math.min(canvas.height - sY, (pageImgHeight * canvas.width / imgWidth));
-        // Create a temp canvas for this page
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvas.width;
         pageCanvas.height = sHeight;
@@ -819,7 +845,6 @@ const QuizResults: React.FC<QuizResultsProps> = ({
           ctx.drawImage(canvas, sX, sY, sWidth, sHeight, 0, 0, sWidth, sHeight);
         }
         const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.8);
-        // For the last page, use the true height
         if (isLastPage) {
           const lastPageImgHeight = (sHeight * imgWidth) / canvas.width;
           pdf.addImage(pageImgData, 'PNG', 20, 20, imgWidth, lastPageImgHeight);
@@ -830,9 +855,18 @@ const QuizResults: React.FC<QuizResultsProps> = ({
         pageImgY += sHeight;
         if (!isLastPage && remainingHeight > 0) pdf.addPage();
       }
-      pdf.save(`${quizData.topic || 'quiz'}_report_card.pdf`);
+      // Upload as blob
+      const pdfBlob = pdf.output('blob');
+      const formData = new FormData();
+      formData.append('file', pdfBlob, `${quizData.topic || 'quiz'}_report_card.pdf`);
+      formData.append('quiz_attempt_id', `${quiz_attempt_id}`);
+      await fetch(API_URL + '/quiz-downloads/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
     } catch (e) {
-      // Optionally show error
+      console.log(e);
     }
     // Restore previous styles
     resultRef.current.style.overflow = prevStyle.overflow;
@@ -848,16 +882,18 @@ const QuizResults: React.FC<QuizResultsProps> = ({
 
 
 
+
   // Download handler for quiz export options
-  const handleDownloadQuiz = async (
+  const handleUploadQuiz = async (
     mode: 'questionsOnly' | 'withAttempts' | 'answerKey',
-    filetype: 'txt' | 'pdf' = 'txt'
+    filetype: 'txt' | 'pdf' = 'txt',
+    quiz_attempt_id?: number
   ) => {
     if (!quizData) return;
     // Construct a full Quiz object for export
     const now = new Date();
     const quizToExport = {
-      id: 'quiz', // fallback since QuizData has no id
+      id: `${quiz_attempt_id}`, // fallback since QuizData has no id
       topic: quizData.topic,
       subtopic: '', // fallback since QuizData has no subtopic
       date: now.toISOString(),
@@ -902,9 +938,9 @@ const QuizResults: React.FC<QuizResultsProps> = ({
         return;
     }
     if (filetype === 'pdf') {
-      await downloadPdfFile(filename.replace(/\.txt$/, '.pdf'), content);
+      await uploadPdfFile(filename.replace(/\.txt$/, '.pdf'), content, quiz_attempt_id);
     } else {
-      downloadTextFile(filename, content);
+      await uploadTextFile(filename, content, quiz_attempt_id);
     }
   };
   const [showExplanations, setShowExplanations] = useState<boolean>(true);
@@ -951,31 +987,31 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="min-w-[200px] w-full max-w-xs md:min-w-[260px]">
                 <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Questions Only</div>
-                <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'txt')}>
+                <DropdownMenuItem onClick={() => {}}>
                   <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'pdf')}>
+                <DropdownMenuItem onClick={() => {}}>
                   <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
                 </DropdownMenuItem>
                 <div className="my-1 border-t" />
                 <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">With Attempts & Answers</div>
-                <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'txt')}>
+                <DropdownMenuItem onClick={() => {}}>
                   <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'pdf')}>
+                <DropdownMenuItem onClick={() => {}}>
                   <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
                 </DropdownMenuItem>
                 <div className="my-1 border-t" />
                 <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Answer Key</div>
-                <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'txt')}>
+                <DropdownMenuItem onClick={() => {}}>
                   <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'pdf')}>
+                <DropdownMenuItem onClick={() => {}}>
                   <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={handleDownloadReportCard} disabled={reportLoading}>
+            <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={() => {}} disabled={reportLoading}>
               <FileDown className="w-4 h-4 mr-2" />
               {reportLoading ? 'Generating Report...' : 'Download Report Card'}
             </Button>

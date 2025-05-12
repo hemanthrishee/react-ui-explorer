@@ -30,7 +30,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { generateQuizQuestionsOnly, generateQuizWithAttempts, generateQuizAnswerKey, downloadTextFile, downloadPdfFile } from '../downloadQuizUtils';
+import { generateQuizQuestionsOnly, generateQuizWithAttempts, generateQuizAnswerKey, uploadTextFile, uploadPdfFile } from '../downloadQuizUtils';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FileText, FileSignature, FileDown } from 'lucide-react';
 import html2canvas from 'html2canvas';
@@ -153,67 +153,67 @@ const ProfilePage: React.FC = () => {
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Download the report card as a PDF (UI snapshot)
-  const handleDownloadReportCard = async () => {
-    if (!reportRef.current) return;
-    setReportLoading(true);
-    try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const jsPDF = (await import('jspdf')).jsPDF;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      // Calculate image dimensions to fit A4
-      const imgWidth = pageWidth - 40;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
-      pdf.save(`${selectedQuiz?.topic || 'quiz'}_report_card.pdf`);
-    } catch (e) {
-      // Optionally show error
-    }
-    setReportLoading(false);
-  };
+  // const handleDownloadReportCard = async () => {
+  //   if (!reportRef.current) return;
+  //   setReportLoading(true);
+  //   try {
+  //     const canvas = await html2canvas(reportRef.current, { scale: 2 });
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const jsPDF = (await import('jspdf')).jsPDF;
+  //     const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+  //     const pageWidth = pdf.internal.pageSize.getWidth();
+  //     const pageHeight = pdf.internal.pageSize.getHeight();
+  //     // Calculate image dimensions to fit A4
+  //     const imgWidth = pageWidth - 40;
+  //     const imgHeight = canvas.height * imgWidth / canvas.width;
+  //     pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+  //     pdf.save(`${selectedQuiz?.topic || 'quiz'}_report_card.pdf`);
+  //   } catch (e) {
+  //     // Optionally show error
+  //   }
+  //   setReportLoading(false);
+  // };
 
   // ...existing state and hooks...
 
   // Download handler for quiz export options
-  const handleDownloadQuiz = async (
-  mode: 'questionsOnly' | 'withAttempts' | 'answerKey',
-  filetype: 'txt' | 'pdf' = 'txt'
-) => {
-    if (!selectedQuiz) return;
-    // Ensure we use the full quiz object, not just the paginated questions
-    let quizToExport = { ...selectedQuiz };
-    const selQuizQuestions = Array.isArray(selectedQuiz.questions) ? selectedQuiz.questions : [];
-    const loadedQuestions = Array.isArray(questions) ? questions : [];
-    // If all questions are not loaded in selectedQuiz, try to merge in all questions if available
-    if (loadedQuestions.length > 0 && loadedQuestions.length !== selQuizQuestions.length) {
-      quizToExport.questions = loadedQuestions;
-    }
-    let content = '';
-    let filename = '';
-    switch (mode) {
-      case 'questionsOnly':
-        content = generateQuizQuestionsOnly(quizToExport);
-        filename = `${selectedQuiz.topic || 'quiz'}_questions.txt`;
-        break;
-      case 'withAttempts':
-        content = generateQuizWithAttempts(quizToExport);
-        filename = `${selectedQuiz.topic || 'quiz'}_attempts_and_answers.txt`;
-        break;
-      case 'answerKey':
-        content = generateQuizAnswerKey(quizToExport);
-        filename = `${selectedQuiz.topic || 'quiz'}_answer_key.txt`;
-        break;
-      default:
-        return;
-    }
-    if (filetype === 'pdf') {
-      await downloadPdfFile(filename.replace(/\.txt$/, '.pdf'), content);
-    } else {
-      downloadTextFile(filename, content);
-    }
-  };
+//   const handleDownloadQuiz = async (
+//   mode: 'questionsOnly' | 'withAttempts' | 'answerKey',
+//   filetype: 'txt' | 'pdf' = 'txt'
+// ) => {
+//     if (!selectedQuiz) return;
+//     // Ensure we use the full quiz object, not just the paginated questions
+//     let quizToExport = { ...selectedQuiz };
+//     const selQuizQuestions = Array.isArray(selectedQuiz.questions) ? selectedQuiz.questions : [];
+//     const loadedQuestions = Array.isArray(questions) ? questions : [];
+//     // If all questions are not loaded in selectedQuiz, try to merge in all questions if available
+//     if (loadedQuestions.length > 0 && loadedQuestions.length !== selQuizQuestions.length) {
+//       quizToExport.questions = loadedQuestions;
+//     }
+//     let content = '';
+//     let filename = '';
+//     switch (mode) {
+//       case 'questionsOnly':
+//         content = generateQuizQuestionsOnly(quizToExport);
+//         filename = `${selectedQuiz.topic || 'quiz'}_questions.txt`;
+//         break;
+//       case 'withAttempts':
+//         content = generateQuizWithAttempts(quizToExport);
+//         filename = `${selectedQuiz.topic || 'quiz'}_attempts_and_answers.txt`;
+//         break;
+//       case 'answerKey':
+//         content = generateQuizAnswerKey(quizToExport);
+//         filename = `${selectedQuiz.topic || 'quiz'}_answer_key.txt`;
+//         break;
+//       default:
+//         return;
+//     }
+//     if (filetype === 'pdf') {
+//       await downloadPdfFile(filename.replace(/\.txt$/, '.pdf'), content);
+//     } else {
+//       downloadTextFile(filename, content);
+//     }
+//   };
 
   const navigate = useNavigate();
   const { user: authUser, logout, isAuthenticated } = useAuth();
@@ -934,31 +934,31 @@ const ProfilePage: React.FC = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="min-w-[200px] w-full max-w-xs md:min-w-[260px]">
                             <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Questions Only</div>
-                            <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'txt')}>
+                            <DropdownMenuItem onClick={() => {}}>
                               <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadQuiz('questionsOnly', 'pdf')}>
+                            <DropdownMenuItem onClick={() => {}}>
                               <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
                             </DropdownMenuItem>
                             <div className="my-1 border-t" />
                             <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">With Attempts & Answers</div>
-                            <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'txt')}>
+                            <DropdownMenuItem onClick={() => {}}>
                               <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadQuiz('withAttempts', 'pdf')}>
+                            <DropdownMenuItem onClick={() => {}}>
                               <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
                             </DropdownMenuItem>
                             <div className="my-1 border-t" />
                             <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Answer Key</div>
-                            <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'txt')}>
+                            <DropdownMenuItem onClick={() => {}}>
                               <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadQuiz('answerKey', 'pdf')}>
+                            <DropdownMenuItem onClick={() => {}}>
                               <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={handleDownloadReportCard} disabled={reportLoading}>
+                        <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={() => {}} disabled={reportLoading}>
                           <FileDown className="w-4 h-4 mr-2" />
                           {reportLoading ? 'Generating Report...' : 'Download Report Card'}
                         </Button>

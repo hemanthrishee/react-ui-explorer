@@ -1,5 +1,7 @@
 // Utility functions to generate quiz download content for different modes
 // Copied from ProfilePage.tsx for type safety
+const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
+
 export interface Question {
   question: string;
   options: string[];
@@ -63,18 +65,26 @@ export function generateQuizAnswerKey(quiz: Quiz): string {
 }
 
 // Helper to download a string as a .txt file
-export function downloadTextFile(filename: string, content: string) {
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+export async function uploadTextFile(filename: string, content: string, quiz_attempt_id: number) {
+  const formData = new FormData();
+  const file = new Blob([content], { type: 'text/plain' });
+  formData.append('file', file, filename);
+  formData.append('quiz_attempt_id', `${quiz_attempt_id}`);
+
+  const response = await fetch(API_URL + '/quiz-downloads/upload', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to upload text file');
+  }
+  return await response.json();
 }
 
 // Helper to download a string as a PDF file (requires jsPDF)
-export async function downloadPdfFile(filename: string, content: string) {
+export async function uploadPdfFile(filename: string, content: string, quiz_attempt_id: number) {
   const jsPDF = (await import('jspdf')).jsPDF;
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -94,6 +104,22 @@ export async function downloadPdfFile(filename: string, content: string) {
       y += lineHeight;
     });
   });
-  doc.save(filename);
+
+  // Get PDF as Blob
+  const pdfBlob = doc.output('blob');
+  const formData = new FormData();
+  formData.append('file', pdfBlob, filename);
+  formData.append('quiz_attempt_id', `${quiz_attempt_id}`);
+
+  const response = await fetch(API_URL + '/quiz-downloads/upload', {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to upload PDF file');
+  }
+  return await response.json();
 }
 
