@@ -314,8 +314,8 @@ const TopicPage = () => {
     return (
       <div className="flex-grow flex items-center justify-center min-h-[calc(100vh-theme(spacing.16)-theme(spacing.16))] safe-top safe-bottom">
         <div className="text-center max-w-md mx-auto px-4">
-          <h2 className="text-2xl font-semibold mb-4 text-red-500">Oops! Something went wrong</h2>
-          <p className="mb-6 text-gray-600">{error}</p>
+          <h2 className="text-2xl font-semibold mb-4 text-red-500">Oops! {error}</h2>
+          <p className="mb-6 text-gray-600">Please try to enter valid queries</p>
           <Button onClick={goBack} className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to Search
