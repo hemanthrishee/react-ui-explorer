@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import { generateQuizAnswerKey, generateQuizQuestionsOnly, generateQuizWithAttempts } from '@/downloadQuizUtils';
 import { uploadPdfFile, uploadTextFile } from '@/downloadQuizUtils';
+import { downloadQuizFilePresigned, QuizDownloadFileType } from './downloadQuizPresigned';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
-import { FileText, FileSignature, FileDown, ChevronRight } from 'lucide-react';
+import { FileText, FileSignature, FileDown, ChevronRight, Loader2 } from 'lucide-react';
 import { Check, CheckSquare, Square, HelpCircle, AlertCircle, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
@@ -45,6 +46,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
 }) => {
     const [reportLoading, setReportLoading] = useState(false);
     const [filesUploaded, setFilesUploaded] = useState(false);
+    const [loadingFileType, setLoadingFileType] = useState<string | null>(null);
     const resultRef = useRef<HTMLDivElement>(null);
 
     // Auto-upload all quiz files after quiz_attempt_id is available and files not yet uploaded
@@ -272,33 +274,123 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="min-w-[200px] w-full max-w-xs md:min-w-[260px]">
                   <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Questions Only</div>
-                  <DropdownMenuItem onClick={() => {}}>
-                    <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                  <DropdownMenuItem 
+                    disabled={!quiz_attempt_id || loadingFileType === 'questions_txt'}
+                    onClick={async () => {
+                      if (!quiz_attempt_id) return;
+                      setLoadingFileType('questions_txt');
+                      try {
+                        await downloadQuizFilePresigned(quiz_attempt_id, 'questions_txt', API_URL, `${quizData.topic || 'quiz'}_questions.txt`);
+                      } catch (e) {
+                        alert((e as Error).message || 'Download failed');
+                      } finally {
+                        setLoadingFileType(null);
+                      }
+                    }}
+                  >
+                    {loadingFileType === 'questions_txt' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2 text-blue-500" />} TXT
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {}}>
-                    <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                  <DropdownMenuItem 
+                    disabled={!quiz_attempt_id || loadingFileType === 'questions_pdf'}
+                    onClick={async () => {
+                      if (!quiz_attempt_id) return;
+                      setLoadingFileType('questions_pdf');
+                      try {
+                        await downloadQuizFilePresigned(quiz_attempt_id, 'questions_pdf', API_URL, `${quizData.topic || 'quiz'}_questions.pdf`);
+                      } catch (e) {
+                        alert((e as Error).message || 'Download failed');
+                      } finally {
+                        setLoadingFileType(null);
+                      }
+                    }}
+                  >
+                    {loadingFileType === 'questions_pdf' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSignature className="w-4 h-4 mr-2 text-purple-500" />} PDF
                   </DropdownMenuItem>
                   <div className="my-1 border-t" />
                   <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">With Attempts & Answers</div>
-                  <DropdownMenuItem onClick={() => {}}>
-                    <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                  <DropdownMenuItem 
+                    disabled={!quiz_attempt_id || loadingFileType === 'user_attempt_txt'}
+                    onClick={async () => {
+                      if (!quiz_attempt_id) return;
+                      setLoadingFileType('user_attempt_txt');
+                      try {
+                        await downloadQuizFilePresigned(quiz_attempt_id, 'user_attempt_txt', API_URL, `${quizData.topic || 'quiz'}_attempts_and_answers.txt`);
+                      } catch (e) {
+                        alert((e as Error).message || 'Download failed');
+                      } finally {
+                        setLoadingFileType(null);
+                      }
+                    }}
+                  >
+                    {loadingFileType === 'user_attempt_txt' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2 text-blue-500" />} TXT
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {}}>
-                    <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                  <DropdownMenuItem 
+                    disabled={!quiz_attempt_id || loadingFileType === 'user_attempt_pdf'}
+                    onClick={async () => {
+                      if (!quiz_attempt_id) return;
+                      setLoadingFileType('user_attempt_pdf');
+                      try {
+                        await downloadQuizFilePresigned(quiz_attempt_id, 'user_attempt_pdf', API_URL, `${quizData.topic || 'quiz'}_attempts_and_answers.pdf`);
+                      } catch (e) {
+                        alert((e as Error).message || 'Download failed');
+                      } finally {
+                        setLoadingFileType(null);
+                      }
+                    }}
+                  >
+                    {loadingFileType === 'user_attempt_pdf' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSignature className="w-4 h-4 mr-2 text-purple-500" />} PDF
                   </DropdownMenuItem>
                   <div className="my-1 border-t" />
                   <div className="px-2 py-1 text-xs text-muted-foreground font-semibold">Answer Key</div>
-                  <DropdownMenuItem onClick={() => {}}>
-                    <FileText className="w-4 h-4 mr-2 text-blue-500" /> TXT
+                  <DropdownMenuItem 
+                    disabled={!quiz_attempt_id || loadingFileType === 'answers_txt'}
+                    onClick={async () => {
+                      if (!quiz_attempt_id) return;
+                      setLoadingFileType('answers_txt');
+                      try {
+                        await downloadQuizFilePresigned(quiz_attempt_id, 'answers_txt', API_URL, `${quizData.topic || 'quiz'}_answer_key.txt`);
+                      } catch (e) {
+                        alert((e as Error).message || 'Download failed');
+                      } finally {
+                        setLoadingFileType(null);
+                      }
+                    }}
+                  >
+                    {loadingFileType === 'answers_txt' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2 text-blue-500" />} TXT
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {}}>
-                    <FileSignature className="w-4 h-4 mr-2 text-purple-500" /> PDF
+                  <DropdownMenuItem 
+                    disabled={!quiz_attempt_id || loadingFileType === 'answers_pdf'}
+                    onClick={async () => {
+                      if (!quiz_attempt_id) return;
+                      setLoadingFileType('answers_pdf');
+                      try {
+                        await downloadQuizFilePresigned(quiz_attempt_id, 'answers_pdf', API_URL, `${quizData.topic || 'quiz'}_answer_key.pdf`);
+                      } catch (e) {
+                        alert((e as Error).message || 'Download failed');
+                      } finally {
+                        setLoadingFileType(null);
+                      }
+                    }}
+                  >
+                    {loadingFileType === 'answers_pdf' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSignature className="w-4 h-4 mr-2 text-purple-500" />} PDF
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center" onClick={() => {}} disabled={reportLoading}>
-                <FileDown className="w-4 h-4 mr-2" />
-                {reportLoading ? 'Generating Report...' : 'Download Report Card'}
+              <Button variant="default" size="sm" className="w-full sm:w-64 flex justify-center items-center text-center"
+                disabled={!quiz_attempt_id || loadingFileType === 'report_pdf'}
+                onClick={async () => {
+                  if (!quiz_attempt_id) return;
+                  setLoadingFileType('report_pdf');
+                  try {
+                    await downloadQuizFilePresigned(quiz_attempt_id, 'report_pdf', API_URL, `${quizData.topic || 'quiz'}_report_card.pdf`);
+                  } catch (e) {
+                    alert((e as Error).message || 'Download failed');
+                  } finally {
+                    setLoadingFileType(null);
+                  }
+                }}>
+                {loadingFileType === 'report_pdf' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileDown className="w-4 h-4 mr-2" />}
+                {loadingFileType === 'report_pdf' ? 'Downloading...' : 'Download Report Card'}
               </Button>
             </div>
             <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg">
