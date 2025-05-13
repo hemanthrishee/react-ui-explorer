@@ -34,9 +34,9 @@ const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100),
   topic: z.string().min(3, "Topic must be at least 3 characters").max(50),
   description: z.string().min(20, "Description must be at least 20 characters").max(500),
-  maxStudents: z.string().optional().transform(val => val === '' ? null : parseInt(val, 10)),
+  maxStudents: z.number().nullable().optional(),
   isFree: z.boolean().default(true),
-  price: z.string().optional().transform(val => val === '' ? null : parseFloat(val)),
+  price: z.number().nullable().optional(),
   teacherQualifications: z.string().min(10, "Qualifications must be at least 10 characters").max(200),
   teacherExpertise: z.string().min(5, "Expertise must be at least 5 characters").max(200),
   registrationDeadline: z.date().nullable(),
@@ -57,9 +57,9 @@ const ClassCreatePage = () => {
       title: '',
       topic: '',
       description: '',
-      maxStudents: '',
+      maxStudents: null,
       isFree: true,
-      price: '',
+      price: null,
       teacherQualifications: '',
       teacherExpertise: '',
       registrationDeadline: null,
@@ -82,7 +82,7 @@ const ClassCreatePage = () => {
   };
 
   const onSubmit = async (data: FormData) => {
-    if (!isFree && (!data.price || parseFloat(data.price) <= 0)) {
+    if (!isFree && (!data.price || data.price <= 0)) {
       form.setError('price', {
         type: 'manual',
         message: 'Please enter a valid price for paid classes',
