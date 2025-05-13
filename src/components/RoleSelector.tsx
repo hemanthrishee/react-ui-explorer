@@ -2,7 +2,7 @@
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Book, Code, UserPlus } from 'lucide-react';
+import { Book, Code } from 'lucide-react';
 import { UserRole } from '@/types/user';
 
 interface RoleSelectorProps {

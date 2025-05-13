@@ -1,3 +1,4 @@
+
 import { set } from 'date-fns';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { UserRole } from '@/types/user';
@@ -18,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => void;
+  updateUserRole: (role: UserRole) => void;
 }
 
 // Create the context with a default value
@@ -28,6 +30,7 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: () => {},
+  updateUserRole: () => {},
 });
 
 interface AuthProviderProps {
@@ -46,10 +49,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
       const data = await response.json();
       if (response.status === 200) {
+        // Check if we have a saved role in localStorage
+        const savedRole = localStorage.getItem('userRole');
+        
         setUser({
           'name': data.name, 
           'email': data.email,
-          'role': data.role || 'student',
+          'role': savedRole as UserRole || 'student', // Use saved role or default to student
           'profilePicture': data.profilePicture
         });
         setIsLoading(false);
@@ -118,6 +124,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (name: string, email: string, password: string, role: UserRole = 'student') => {
     setIsLoading(true);
     try {
+      // Save the role to localStorage for UI purposes
+      localStorage.setItem('userRole', role);
+      
       const response = await fetch(API_URL + '/authentication/signup', {
         method: 'POST',
         headers: {
@@ -128,7 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name: name,
           email: email,
           password: password,
-          role: role
+          // Not sending role to backend
         }),
       });
       
@@ -159,6 +168,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateUserRole = (role: UserRole) => {
+    if (user) {
+      // Save the role to localStorage
+      localStorage.setItem('userRole', role);
+      
+      // Update the user object
+      setUser({
+        ...user,
+        role
+      });
+    }
+  };
+
   const logout = async () => {
     try {
       const response = await fetch(API_URL + '/authentication/logout', {
@@ -168,7 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          email: user.email,
+          email: user?.email,
         }),
       });
       if (!response.ok) {
@@ -180,6 +202,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
         throw new Error(err.error);
       }
+      
+      // Clear the role from localStorage
+      localStorage.removeItem('userRole');
+      
       setUser(null);
     } catch (err) {
       if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
@@ -199,6 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         signup,
         logout,
+        updateUserRole,
       }}
     >
       {children}

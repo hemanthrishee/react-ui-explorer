@@ -213,6 +213,10 @@ const Header: React.FC = () => {
     }
   };
 
+  const handleGoToClasses = () => {
+    navigate('/classes');
+  };
+
   const handleGoToProfile = () => {
     navigate('/profile');
   };
@@ -257,6 +261,16 @@ const Header: React.FC = () => {
         </form>
         
         <div className="flex items-center gap-2">
+          {/* New Classes Button - always visible */}
+          <Button
+            variant="ghost"
+            className={`hidden sm:flex ${isTopicPage ? 'lg:text-white text-react-secondary hover:text-react-primary' : 'text-white hover:text-react-primary'}`}
+            onClick={handleGoToClasses}
+          >
+            <BookCheck className="h-5 w-5 mr-1" />
+            Classes
+          </Button>
+          
           {isAuthenticated ? (
             <>
               {isTopicPage && (
@@ -320,7 +334,7 @@ const Header: React.FC = () => {
               )}
               <Button 
                 className="bg-react-primary text-react-secondary hover:bg-react-primary/90"
-                onClick={() => setShowAuthDialog(true)}
+                onClick={() => navigate('/auth')}
               >
                 Sign In
               </Button>

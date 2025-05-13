@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import RoleSelector from '@/components/RoleSelector';
+import { UserRole } from '@/types/user';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,6 +40,7 @@ const AuthPage: React.FC = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('student');
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,10 +53,9 @@ const AuthPage: React.FC = () => {
     try {
       await login(loginEmail, loginPassword);
       toast.success('Login successful!');
-      navigate(-1); // Go back to the previous page
+      navigate('/classes'); // Redirect to classes page
     } catch (error: any) {
       toast.error(error.message);
-      throw new Error('Login failed. Please try again.');
     }
   };
   
@@ -76,14 +78,17 @@ const AuthPage: React.FC = () => {
     }
     
     try {
-      // Adding 'student' as default role for now - this would be replaced with selected role
-      await signup(signupName, signupEmail, signupPassword, 'student');
+      // Use the selected role from state
+      await signup(signupName, signupEmail, signupPassword, selectedRole);
       toast.success('Account created successfully!');
-      navigate(-1); // Go back to the previous page
+      navigate('/classes'); // Redirect to classes page
     } catch (error: any) {
       toast.error('Could not create account. Please try again.');
-      throw new Error('Signup failed. Please try again.');
     }
+  };
+  
+  const handleRoleChange = (role: UserRole) => {
+    setSelectedRole(role);
   };
   
   return (
@@ -174,6 +179,13 @@ const AuthPage: React.FC = () => {
                     disabled={isLoading}
                   />
                 </div>
+                
+                {/* Role Selection */}
+                <RoleSelector 
+                  selectedRole={selectedRole} 
+                  onRoleChange={handleRoleChange} 
+                />
+                
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
                   <Input 
