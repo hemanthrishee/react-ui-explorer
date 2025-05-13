@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -12,6 +13,10 @@ import QuizPage from '@/pages/QuizPage';
 import AuthPage from '@/pages/AuthPage';
 import ProfilePage from '@/pages/ProfilePage';
 import CodingPracticePage from '@/pages/CodingPracticePage';
+import ClassesPage from '@/pages/ClassesPage';
+import ClassCreatePage from '@/pages/ClassCreatePage';
+import ClassDetailPage from '@/pages/ClassDetailPage';
+import ContestCreatePage from '@/pages/ContestCreatePage';
 import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthContext';
 import './App.css';
@@ -44,6 +49,10 @@ function App() {
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/coding-practice" element={<CodingPracticePage />} />
+                  <Route path="/classes" element={<ClassesPage />} />
+                  <Route path="/classes/create" element={<ClassCreatePage />} />
+                  <Route path="/classes/:id" element={<ClassDetailPage />} />
+                  <Route path="/classes/:id/contests/create" element={<ContestCreatePage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

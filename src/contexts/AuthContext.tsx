@@ -1,12 +1,13 @@
-
 import { set } from 'date-fns';
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { UserRole } from '@/types/user';
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 
 export interface User {
   name: string;
   email: string;
+  role?: UserRole;
   profilePicture?: string;
 }
 
@@ -15,7 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => void;
 }
 
@@ -45,7 +46,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
       const data = await response.json();
       if (response.status === 200) {
-        setUser({'name': data.name, 'email': data.email});
+        setUser({
+          'name': data.name, 
+          'email': data.email,
+          'role': data.role || 'student',
+          'profilePicture': data.profilePicture
+        });
         setIsLoading(false);
       } else {
         console.error('Error fetching user:', response.statusText);
@@ -109,7 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = async (name: string, email: string, password: string, role: UserRole = 'student') => {
     setIsLoading(true);
     try {
       const response = await fetch(API_URL + '/authentication/signup', {
@@ -122,6 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           name: name,
           email: email,
           password: password,
+          role: role
         }),
       });
       
