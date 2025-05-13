@@ -6,6 +6,7 @@ import { UserPlus, Clock, Calendar, Users } from 'lucide-react';
 import { Class } from '@/types/user';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { CustomBadge } from '@/components/ui/custom-badge';
 
 interface ClassCardProps {
   classData: Class;
@@ -85,11 +86,11 @@ const ClassCard = ({
         )}
         
         {isPending && (
-          <Badge variant="secondary">Request Pending</Badge>
+          <CustomBadge variant="secondary">Request Pending</CustomBadge>
         )}
         
         {isEnrolled && (
-          <Badge variant="success">Enrolled</Badge>
+          <CustomBadge variant="success">Enrolled</CustomBadge>
         )}
       </CardFooter>
     </Card>

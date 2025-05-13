@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +10,7 @@ import { format } from 'date-fns';
 import { Calendar, Clock, User, Users, Book, CheckCircle, XCircle, MessageSquare, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { Class, UserRole, ClassEnrollment } from '@/types/user';
+import { CustomBadge } from '@/components/ui/custom-badge';
 
 // Mock data
 const mockClass: Class = {
@@ -137,13 +137,13 @@ const ClassDetailPage = () => {
                 {classData.isFree ? 'Free' : `Paid: $${classData.price}`}
               </Badge>
               <Badge variant="outline">{classData.topic}</Badge>
-              <Badge variant={
+              <CustomBadge variant={
                 classData.status === 'upcoming' ? 'outline' : 
                 classData.status === 'active' ? 'success' : 'secondary'
               }>
                 {classData.status === 'upcoming' ? 'Upcoming' : 
                  classData.status === 'active' ? 'Active' : 'Completed'}
-              </Badge>
+              </CustomBadge>
             </div>
           </div>
           
@@ -154,11 +154,11 @@ const ClassDetailPage = () => {
           )}
           
           {!isTeacher && hasPendingRequest && (
-            <Badge variant="secondary">Request Pending</Badge>
+            <CustomBadge variant="secondary">Request Pending</CustomBadge>
           )}
           
           {!isTeacher && isEnrolled && (
-            <Badge variant="success">Enrolled</Badge>
+            <CustomBadge variant="success">Enrolled</CustomBadge>
           )}
         </div>
         
@@ -434,13 +434,13 @@ const ClassDetailPage = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Status</span>
-                  <Badge variant={
+                  <CustomBadge variant={
                     classData.status === 'upcoming' ? 'outline' : 
                     classData.status === 'active' ? 'success' : 'secondary'
                   }>
                     {classData.status === 'upcoming' ? 'Upcoming' : 
                     classData.status === 'active' ? 'Active' : 'Completed'}
-                  </Badge>
+                  </CustomBadge>
                 </div>
                 
                 <div className="flex items-center justify-between">

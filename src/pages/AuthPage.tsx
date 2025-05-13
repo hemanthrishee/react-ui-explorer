@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,7 @@ const AuthPage: React.FC = () => {
       await login(loginEmail, loginPassword);
       toast.success('Login successful!');
       navigate(-1); // Go back to the previous page
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
       throw new Error('Login failed. Please try again.');
     }
@@ -75,10 +76,11 @@ const AuthPage: React.FC = () => {
     }
     
     try {
-      await signup(signupName, signupEmail, signupPassword);
+      // Adding 'student' as default role for now - this would be replaced with selected role
+      await signup(signupName, signupEmail, signupPassword, 'student');
       toast.success('Account created successfully!');
       navigate(-1); // Go back to the previous page
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Could not create account. Please try again.');
       throw new Error('Signup failed. Please try again.');
     }

@@ -36,7 +36,7 @@ const formSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters").max(500),
   maxStudents: z.string().optional().transform(val => val === '' ? null : parseInt(val, 10)),
   isFree: z.boolean().default(true),
-  price: z.string().optional(),
+  price: z.string().optional().transform(val => val === '' ? null : parseFloat(val)),
   teacherQualifications: z.string().min(10, "Qualifications must be at least 10 characters").max(200),
   teacherExpertise: z.string().min(5, "Expertise must be at least 5 characters").max(200),
   registrationDeadline: z.date().nullable(),
