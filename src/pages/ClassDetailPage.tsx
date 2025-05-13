@@ -115,7 +115,7 @@ const ClassDetailPage = () => {
   };
   
   const handleViewContest = (contestId: string) => {
-    navigate(`/classes/${id}/contests/${contestId}`);
+    navigate(`/coding-practice?contestId=${contestId}`);
   };
   
   if (!classData) {
