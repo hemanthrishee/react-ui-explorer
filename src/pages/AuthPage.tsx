@@ -21,7 +21,7 @@ import { UserRole } from '@/types/user';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, signup, isLoading, isAuthenticated } = useAuth();
+  const { login, signup, isLoading, isAuthenticated } = useAuth(); // signup now accepts up to 6 args for teacher registration
   const [activeTab, setActiveTab] = useState<string>('signin');
   
   // Redirect if already authenticated
@@ -41,6 +41,8 @@ const AuthPage: React.FC = () => {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
+  const [teacherQualifications, setTeacherQualifications] = useState('');
+  const [teacherExpertise, setTeacherExpertise] = useState('');
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,20 +68,21 @@ const AuthPage: React.FC = () => {
       toast.error('Please fill in all fields');
       return;
     }
-    
+    if (selectedRole === 'teacher' && (!teacherQualifications || !teacherExpertise)) {
+      toast.error('Please fill in your qualifications and expertise');
+      return;
+    }
     if (signupPassword !== signupConfirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
     if (signupPassword.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
     }
-    
     try {
       // Use the selected role from state
-      await signup(signupName, signupEmail, signupPassword, selectedRole);
+      await signup(signupName, signupEmail, signupPassword, selectedRole, teacherQualifications, teacherExpertise);
       toast.success('Account created successfully!');
       navigate('/classes'); // Redirect to classes page
     } catch (error: any) {
@@ -207,6 +210,32 @@ const AuthPage: React.FC = () => {
                     disabled={isLoading}
                   />
                 </div>
+                {selectedRole === 'teacher' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="teacher-qualifications">Qualifications</Label>
+                      <Input
+                        id="teacher-qualifications"
+                        type="text"
+                        placeholder="Your education, certifications, awards, etc."
+                        value={teacherQualifications}
+                        onChange={e => setTeacherQualifications(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="teacher-expertise">Area of Expertise</Label>
+                      <Input
+                        id="teacher-expertise"
+                        type="text"
+                        placeholder="Technologies, subjects, skills, etc."
+                        value={teacherExpertise}
+                        onChange={e => setTeacherExpertise(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </>
+                )}
                 <Button 
                   type="submit" 
                   className="w-full bg-react-primary text-react-secondary hover:bg-react-primary/90"

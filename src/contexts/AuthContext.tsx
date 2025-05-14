@@ -8,8 +8,10 @@ const API_URL = import.meta.env.VITE_BACKEND_API_URL_START;
 export interface User {
   name: string;
   email: string;
-  role?: UserRole;
+  role: UserRole;
   profilePicture?: string;
+  qualifications?: string;
+  expertise?: string;
 }
 
 interface AuthContextType {
@@ -17,7 +19,14 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole,
+    qualifications?: string,
+    expertise?: string
+  ) => Promise<void>;
   logout: () => void;
   updateUserRole: (role: UserRole) => void;
 }
@@ -28,7 +37,14 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   login: async () => {},
-  signup: async () => {},
+  signup: async (
+    _name: string,
+    _email: string,
+    _password: string,
+    _role: UserRole,
+    _qualifications?: string,
+    _expertise?: string
+  ) => {},
   logout: () => {},
   updateUserRole: () => {},
 });
@@ -55,8 +71,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser({
           'name': data.name, 
           'email': data.email,
-          'role': savedRole as UserRole || 'student', // Use saved role or default to student
-          'profilePicture': data.profilePicture
+          'role': data.role, // Use saved role or default to student
+          'profilePicture': data.profilePicture,
+          'qualifications': data.qualifications,
+          'expertise': data.expertise
         });
         setIsLoading(false);
       } else {
@@ -121,24 +139,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: UserRole = 'student') => {
+  const signup = async (
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole = 'student',
+    qualifications?: string,
+    expertise?: string
+  ) => {
     setIsLoading(true);
     try {
       // Save the role to localStorage for UI purposes
       localStorage.setItem('userRole', role);
-      
+      const signupBody: any = {
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+      };
+      if (role === 'teacher') {
+        signupBody.qualifications = qualifications;
+        signupBody.expertise = expertise;
+      }
       const response = await fetch(API_URL + '/authentication/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          name: name,
-          email: email,
-          password: password,
-          // Not sending role to backend
-        }),
+        body: JSON.stringify(signupBody),
       });
       
       if (!response.ok) {

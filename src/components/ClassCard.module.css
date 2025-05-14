@@ -1,0 +1,62 @@
+.cardImage {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+}
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+.cardBadge {
+  margin-left: 0.5rem;
+  font-size: 0.85em;
+  height: 1.6rem;
+  display: flex;
+  align-items: center;
+}
+.cardTitle {
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin: 0;
+  text-align: left;
+}
+.cardTopic {
+  color: #6366f1;
+  font-size: 0.96rem;
+  font-weight: 500;
+  margin-bottom: 0.1rem;
+  text-align: left;
+}
+.cardDescription {
+  color: #374151;
+  font-size: 0.97rem;
+  margin-bottom: 0.7rem;
+  min-height: 2.2em;
+  text-align: left;
+}
+.cardMetaRow {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+.cardMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #6b7280;
+  font-size: 0.95em;
+}
+.cardFooterRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.cardDivider {
+  border-bottom: 1px solid #e5e7eb;
+  margin: 0.7rem 0 1rem 0;
+}
