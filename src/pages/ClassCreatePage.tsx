@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +28,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+
+// Define API URL - In a real app, this would come from environment variables
+const API_URL = 'https://api.example.com'; // Replace with your actual API URL
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(100),
@@ -125,26 +127,42 @@ const ClassCreatePage = () => {
     setIsSubmitting(true);
     
     try {
-      // In a real app, you would send this to your API
-      console.log({
+      // Prepare data to send to API - only include teacherId, not all teacher data
+      const classData = {
         ...data,
-        teacherImage: user?.profilePicture,
         classImage,
         teacherId: user?.email,
         currentStudents: 0,
         status: 'upcoming' as 'upcoming',
         createdAt: new Date(),
         updatedAt: new Date(),
+      };
+      
+      console.log('Sending data to API:', classData);
+      
+      // Make the POST request to the API
+      const response = await fetch(`${API_URL}/classes/create-class`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(classData),
       });
       
-      setTimeout(() => {
-        toast.success("Class created successfully!");
-        navigate('/classes');
-      }, 1000);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to create class');
+      }
+      
+      const result = await response.json();
+      console.log('API response:', result);
+      
+      toast.success("Class created successfully!");
+      navigate('/classes');
       
     } catch (error) {
+      console.error('Error creating class:', error);
       toast.error("Failed to create class. Please try again.");
-      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
