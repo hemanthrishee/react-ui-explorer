@@ -461,13 +461,25 @@ const QuizPage: React.FC = () => {
   }, [activeQuestionIndex, quizData, endQuiz]);
   
   const goToPreviousQuestion = () => {
-    if (quizConfig.timerPerQuestion) {
-      toast.error("Cannot navigate back when timer per question is enabled");
-      return;
-    }
+    if (!quizData) return;
     
-    if (activeQuestionIndex > 0) {
-      goToQuestionIndex(activeQuestionIndex - 1);
+    if (quizConfig.timerPerQuestion) {
+      // Find the last unlocked question before current one
+      let previousIndex = activeQuestionIndex - 1;
+      
+      while (previousIndex >= 0 && lockedQuestions.includes(previousIndex)) {
+        previousIndex--;
+      }
+      
+      if (previousIndex >= 0) {
+        goToQuestionIndex(previousIndex);
+      } else {
+        toast.error("No previous unlocked questions available");
+      }
+    } else {
+      if (activeQuestionIndex > 0) {
+        goToQuestionIndex(activeQuestionIndex - 1);
+      }
     }
   };
   
@@ -697,7 +709,7 @@ const QuizPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={goToPreviousQuestion}
-              disabled={activeQuestionIndex === 0 || quizConfig.timerPerQuestion}
+              disabled={activeQuestionIndex === 0}
             >
               <ArrowLeft className="mr-1 h-4 w-4" /> Previous
             </Button>
